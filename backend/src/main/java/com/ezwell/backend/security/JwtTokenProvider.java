@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import com.ezwell.backend.domain.user.Role;
 
 @Component
 public class JwtTokenProvider {
@@ -21,14 +22,14 @@ public class JwtTokenProvider {
         this.key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String createAccessToken(Long userId, String email, String role) {
+    public String createAccessToken(Long id, String email, Role role) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + ACCESS_TOKEN_MS);
 
         return Jwts.builder()
                 .setSubject(email)
-                .claim("uid", userId)
-                .claim("role", role)
+                .claim("userId", id)
+                .claim("role", role.name())
                 .setIssuedAt(now)
                 .setExpiration(exp)
                 .signWith(key, SignatureAlgorithm.HS256)
