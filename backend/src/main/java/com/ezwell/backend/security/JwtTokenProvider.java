@@ -13,7 +13,7 @@ import com.ezwell.backend.domain.user.Role;
 public class JwtTokenProvider {
 
     // ⚠️ 실서비스에서는 환경변수로 빼기 (최소 32바이트 이상)
-    private static final String SECRET = "studyspot-secret-studyspot-secret-32bytes!";
+    private static final String SECRET = "ezfillstack-jwt-secret-key-32bytes-long!";
     private static final long ACCESS_TOKEN_MS = 1000L * 60 * 60 * 2; // 2h
 
     private final Key key;
