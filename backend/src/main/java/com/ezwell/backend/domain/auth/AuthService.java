@@ -32,6 +32,9 @@ public class AuthService {
             throw new IllegalStateException("EMAIL_ALREADY_EXISTS");
         }
         String hash = passwordEncoder.encode(req.password()); //비밀번호 암호화
+
+        // 생성자에서 자동으로 Role.USER 들어가게 변경됨
+        User user = new User(req.email(), hash);
         userRepository.save(new User(req.email(), hash));
     }
 
