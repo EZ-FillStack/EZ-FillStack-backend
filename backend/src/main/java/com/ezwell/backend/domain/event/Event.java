@@ -53,6 +53,10 @@ public class Event {
 
     private Integer viewCount = 0;
 
+    //북마크 카운트 변수
+    @Column(nullable = false)
+    private Integer bookmarkCount = 0;
+
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
@@ -93,7 +97,7 @@ public class Event {
     }
 
 
-     // 정원 초과 방지 및 정원 도달 시 자동 마감
+    // 정원 초과 방지 및 정원 도달 시 자동 마감
     public void increaseParticipants() {
         if (currentParticipants >= capacity) {
             throw new CapacityExceededException();
@@ -181,5 +185,16 @@ public class Event {
             this.updatedAt = LocalDateTime.now();
         }
     }
-}
 
+    // 북마크 증가
+    public void increaseBookmarkCount() {
+        this.bookmarkCount++;
+    }
+
+    // 북마크 감소
+    public void decreaseBookmarkCount() {
+        if (this.bookmarkCount > 0) {
+            this.bookmarkCount--;
+        }
+    }
+}
