@@ -36,7 +36,7 @@ public class BookmarkController {
 	}
 	
 	// 마이페이지 북마크
-	@GetMapping("/my/bookmarks")
+	@GetMapping("/me/bookmarks")
 	public ResponseEntity<List<BookmarkListResponse>> getMyBookmarks(HttpServletRequest request){
 		List<BookmarkListResponse> bookmarks = bookmarkService.getMyBookmarks(request.getSession());
 		return ResponseEntity.ok(bookmarks);
