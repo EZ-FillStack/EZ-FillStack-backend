@@ -14,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+// 관리자 수정 DTO 추가
+import com.ezwell.backend.domain.event.dto.EventUpdateRequest;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -44,6 +47,42 @@ public class EventService {
         Event event = new Event(request.title(), request.capacity(), category);
         event = eventRepository.save(event);
         return EventResponse.from(event);
+    }
+    @Transactional
+    public EventResponse updateEvent(Long eventId, EventUpdateRequest request) {
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(EventNotFoundException::new);
+
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new IllegalArgumentException("CATEGORY_NOT_FOUND"));
+
+        // DTO에 없는 값은 기존 event 값 유지
+        event.update(
+                request.getTitle(),
+                event.getThumbnailUrl(),              // 기존 값 유지
+                request.getDescription(),
+                event.getAddress(),                   // 기존 값 유지
+                event.getPlaceName(),                 // 기존 값 유지
+                request.getStartAt(),                 // DTO 필드
+                request.getEndAt(),                   // DTO 필드
+                event.getApplyStartDateTime(),        // 기존 값 유지
+                event.getApplyEndDateTime(),          // 기존 값 유지
+                request.getCapacity(),                // DTO 필드
+                category
+        );
+
+        return EventResponse.from(event);
+    }
+
+    @Transactional
+    public void deleteEvent(Long eventId) {
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(EventNotFoundException::new);
+
+        // 🔥 Event.java에 추가한 markDeleted() 호출
+        event.markDeleted();
     }
 
     @Transactional
