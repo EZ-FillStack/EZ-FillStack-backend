@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/EZ-FillStack-backend.iml" filepath="$PROJECT_DIR$/.idea/EZ-FillStack-backend.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-2111573784/backend.main.iml" filepath="$PROJECT_DIR$/.idea/modules/-2111573784/backend.main.iml" />
     </modules>
   </component>
 </project>

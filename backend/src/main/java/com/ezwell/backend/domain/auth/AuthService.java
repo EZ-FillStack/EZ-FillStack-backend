@@ -46,7 +46,7 @@ public class AuthService {
         }
 
         //JWT 생성
-        String token = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole());
+        String token = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().getKey());
         return new AuthResponse(token);
     }
 }
