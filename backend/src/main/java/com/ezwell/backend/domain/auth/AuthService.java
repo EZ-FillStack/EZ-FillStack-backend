@@ -37,6 +37,8 @@ public class AuthService {
         userRepository.save(new User(req.email(), hash));
     }
 
+
+
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest req) {
         //사용자 조회
