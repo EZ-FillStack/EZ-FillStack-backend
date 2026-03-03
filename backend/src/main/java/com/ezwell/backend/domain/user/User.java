@@ -3,7 +3,7 @@ package com.ezwell.backend.domain.user;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import com.ezwell.backend.domain.user.Role;
+
 
 @Entity
 @Getter
@@ -11,7 +11,6 @@ import com.ezwell.backend.domain.user.Role;
 @Table(name = "users")
 public class User {
 
-    // 기본키 (PK)
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -20,21 +19,28 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    // 비밀번호 (암호화된 값)
+    // 암호화된 비밀번호
     @Column(nullable = false)
     private String passwordHash;
 
-    // 사용자 권한 (USER, ADMIN 등)
-    @Enumerated(EnumType.STRING)
+    // String role 필드 제거
+    // private String role = "USER";
+
+    // Role enum 타입으로 통일 변경
+    @Enumerated(EnumType.STRING) // enum을 문자열로 DB 저장
     @Column(nullable = false)
-    private Role role = Role.USER;
+    private Role role;
 
-
-    // 생성자 (기본 정보로 생성 시 USER 권한 부여
+    // 기본 생성 시 USER 권한 자동 부여 되게 변경
     public User(String email, String passwordHash) {
         this.email = email;
         this.passwordHash = passwordHash;
-        this.role = Role.USER;
+        this.role = Role.USER; // 기본값 설정
+    }
+
+    // 권한 변경 메서드 추가 2/24
+    public void changeRole(Role role) {
+        this.role = role;
     }
 
     // 관리자 생성 등 필요 시 사용할 전체 생성자

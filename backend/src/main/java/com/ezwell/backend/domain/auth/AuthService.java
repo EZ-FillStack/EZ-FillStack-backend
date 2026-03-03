@@ -32,6 +32,8 @@ public class AuthService {
             throw new IllegalStateException("EMAIL_ALREADY_EXISTS");
         }
         String hash = passwordEncoder.encode(req.password()); //비밀번호 암호화
+
+        // 생성자에서 자동으로 Role.USER 들어가게 변경됨
         userRepository.save(new User(req.email(), hash));
     }
 
@@ -46,7 +48,7 @@ public class AuthService {
         }
 
         //JWT 생성
-        String token = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole().getKey());
+        String token = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole());
         return new AuthResponse(token);
     }
 }

@@ -53,6 +53,10 @@ public class Event {
 
     private Integer viewCount = 0;
 
+    //북마크 카운트 변수
+    @Column(nullable = false)
+    private Integer bookmarkCount = 0;
+
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
@@ -93,7 +97,7 @@ public class Event {
     }
 
 
-     // 정원 초과 방지 및 정원 도달 시 자동 마감
+    // 정원 초과 방지 및 정원 도달 시 자동 마감
     public void increaseParticipants() {
         if (currentParticipants >= capacity) {
             throw new CapacityExceededException();
@@ -112,5 +116,85 @@ public class Event {
             this.currentParticipants--;
         }
     }
+    // ======================================================
+    // 아래 내용 2/25 추가
+    // ======================================================
 
+    // 소프트 삭제 처리 추가
+    public void markDeleted() {
+        this.deletedAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     *  관리자 수정용 메서드 추가
+     */
+    public void update(String title,
+                       String thumbnailUrl,
+                       String description,
+                       String address,
+                       String placeName,
+                       LocalDateTime eventStartDateTime,
+                       LocalDateTime eventEndDateTime,
+                       LocalDateTime applyStartDateTime,
+                       LocalDateTime applyEndDateTime,
+                       Integer capacity,
+                       Category category) {
+
+        this.title = title;
+        this.thumbnailUrl = thumbnailUrl;
+        this.description = description;
+        this.address = address;
+        this.placeName = placeName;
+        this.eventStartDateTime = eventStartDateTime;
+        this.eventEndDateTime = eventEndDateTime;
+        this.applyStartDateTime = applyStartDateTime;
+        this.applyEndDateTime = applyEndDateTime;
+        this.capacity = capacity;
+        this.category = category;
+
+        this.updatedAt = LocalDateTime.now(); // 수정 시간 갱신
+    }
+
+    /**
+     *  스케줄러에서 자동 마감 처리용 추가
+     */
+    public void close() {
+        this.status = EventStatus.CLOSED;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void open() {
+        if (deletedAt != null) return;
+        this.status = EventStatus.OPEN;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    /**
+     *  신청 시작 시 자동 OPEN 전환 추가
+     */
+    public void openIfApplicable(LocalDateTime now) {
+        if (deletedAt != null) return;
+
+        if (status == EventStatus.UPCOMING
+                && applyStartDateTime != null
+                && now.isAfter(applyStartDateTime)
+                && (applyEndDateTime == null || now.isBefore(applyEndDateTime))) {
+
+            this.status = EventStatus.OPEN;
+            this.updatedAt = LocalDateTime.now();
+        }
+    }
+
+    // 북마크 증가
+    public void increaseBookmarkCount() {
+        this.bookmarkCount++;
+    }
+
+    // 북마크 감소
+    public void decreaseBookmarkCount() {
+        if (this.bookmarkCount > 0) {
+            this.bookmarkCount--;
+        }
+    }
 }
