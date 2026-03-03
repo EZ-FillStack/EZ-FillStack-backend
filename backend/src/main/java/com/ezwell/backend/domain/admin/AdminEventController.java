@@ -37,4 +37,5 @@ public class AdminEventController {
     public void delete(@PathVariable Long id) {
         eventService.deleteEvent(id);
     }
+
 }
