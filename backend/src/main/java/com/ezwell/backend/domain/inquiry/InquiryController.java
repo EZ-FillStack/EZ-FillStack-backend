@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,10 +36,25 @@ public class InquiryController {
 		return ResponseEntity.ok(inquiryService.getMyInquiries(request.getSession()));
 	}
 	
+	// 문의 수정
+	@PatchMapping("/inquiries/{id}")
+	public ResponseEntity<Void> updateInquiry(@PathVariable Long id, @RequestBody InquiryRequest dto,
+																		HttpServletRequest request) {
+		inquiryService.updateInquiry(id, dto, request.getSession());
+		return ResponseEntity.ok().build();
+	}
+	
+	// 문의 삭제
+	@DeleteMapping("/inquiries/{id}")
+	public ResponseEntity<Void> deleteInquiry(@PathVariable Long id, HttpServletRequest request){
+		inquiryService.deleteInquiry(id, request.getSession());
+		return ResponseEntity.noContent().build();
+	}
+	
 	// 관리자 답변
 	@PatchMapping("/admin/inquiries/{id}")
-	public ResponseEntity<Void> answer(@PathVariable Long id, @RequestBody String answerContent){
-		inquiryService.answerInquiry(id, answerContent);
+	public ResponseEntity<Void> answer(@PathVariable Long id, @RequestBody InquiryRequest dto){
+		inquiryService.answerInquiry(id, dto.getAnswerContent());
 		return ResponseEntity.ok().build();
 	}
 }
