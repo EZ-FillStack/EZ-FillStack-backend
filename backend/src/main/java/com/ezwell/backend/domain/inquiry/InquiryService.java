@@ -47,12 +47,38 @@ public class InquiryService {
 	@Transactional(readOnly=true)
 	public List<InquiryResponse> getMyInquiries(HttpSession session){
 		User user = validateUser(session);
-		return inquiryRepository.findAllByUserInquiryByCreateAtDesc(user).stream()
+		return inquiryRepository.findAllByUserOrderByCreatedAtDesc(user).stream()
 				.map(InquiryResponse::from)
 				.collect(Collectors.toList());
 	}
 	
-	// 관리자 답변 등록
+	// 문의 수정
+	@Transactional
+	public void updateInquiry(Long id, InquiryRequest dto, HttpSession session) {
+		User user = validateUser(session);
+		Inquiry inquiry = inquiryRepository.findById(id)
+				.orElseThrow(()-> new InquiryException("문의를 찾을 수 없습니다."));
+		// 본인 확인
+		if(!inquiry.getUser().getId().equals(user.getId())) {
+			throw new InquiryException("수정 권한이 없습니다.");
+		}
+		inquiry.updateInquiry(dto.getTitle(), dto.getContent());
+	}
+	
+	// 문의 삭제
+	@Transactional
+	public void deleteInquiry(Long inquiryId, HttpSession session) {
+		User user = validateUser(session);
+		Inquiry inquiry = inquiryRepository.findById(inquiryId)
+				.orElseThrow(()-> new InquiryException("문의를 찾을 수 없습니다."));
+		// 본인 확인
+		if(!inquiry.getUser().getId().equals(user.getId())) {
+			throw new InquiryException("삭제 권한이 없습니다.");
+		}
+		inquiryRepository.delete(inquiry);
+	}
+	
+	// 관리자 답변 등록 & 수정
 	@Transactional
 	public void answerInquiry(Long inquiryId, String answerContent) {
 		Inquiry inquiry = inquiryRepository.findById(inquiryId)

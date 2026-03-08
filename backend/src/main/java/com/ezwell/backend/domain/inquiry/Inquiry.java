@@ -2,6 +2,7 @@ package com.ezwell.backend.domain.inquiry;
 
 import java.time.LocalDateTime;
 
+import com.ezwell.backend.domain.inquiry.exception.InquiryException;
 import com.ezwell.backend.domain.user.User;
 
 import jakarta.persistence.Column;
@@ -14,6 +15,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -23,7 +25,7 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 기본 생성자 접근 제어
 public class Inquiry {
 	// 답변 필드 추가 필요 (answerContent, answeredAt)
 
@@ -68,4 +70,14 @@ public class Inquiry {
 		this.status = InquiryStatus.ANSERED;
 		this.answeredAt = LocalDateTime.now();
 	}
+	
+	// 질문 수정
+	public void updateInquiry(String title, String content) {
+		if(this.status == InquiryStatus.ANSERED) {
+			throw new InquiryException("이미 답변이 완료된 문의는 수정할 수 없습니다.");
+		}
+		this.title = title;
+		this.content = content;
+	}
+	
 }
