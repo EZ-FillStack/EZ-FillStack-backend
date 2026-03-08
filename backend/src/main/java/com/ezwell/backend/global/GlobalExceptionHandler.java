@@ -8,6 +8,7 @@ import com.ezwell.backend.domain.inquiry.exception.InquiryException;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 
 @RestControllerAdvice
@@ -55,5 +56,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException e) {
         return ResponseEntity.status(403).body(new ErrorResponse("FORBIDDEN", "해당 작업에 대한 권한이 없습니다."));
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e) {
+        String errorMessage = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        return ResponseEntity.badRequest().body(new ErrorResponse("VALIDATION_ERROR", errorMessage));
     }
 }
