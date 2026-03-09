@@ -27,30 +27,33 @@ public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    // JwtTokenProvider가 이미 UserDetailsService를 가지고 있으므로
-    // 필터 생성 시 jwtTokenProvider만 전달하는 방식을 유지
     JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtTokenProvider);
 
     http
-      .csrf(csrf -> csrf.disable())
-      .cors(Customizer.withDefaults())
-      .sessionManagement(sm ->
-        sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-      )
-      .authorizeHttpRequests(auth -> auth
-        // 1. 로그인/회원가입은 모두 허용
-        .requestMatchers("/auth/**").permitAll()
+            .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults())
+            .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2-console iframe 허용
+            .sessionManagement(sm ->
+                    sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .authorizeHttpRequests(auth -> auth
+                    // 1. 로그인/회원가입은 모두 허용
+                    .requestMatchers("/auth/**").permitAll()
 
-        // 2. 관리자 전용 API
-        .requestMatchers("/admin/**").hasRole("ADMIN")
+                    // 2. H2 데이터베이스 콘솔 접근 허용
+                    .requestMatchers("/h2-console/**").permitAll()
 
-        // 3. 이벤트는 로그인한 사용자만
-        .requestMatchers("/events/**").authenticated()
+                    // 3. 관리자 전용 API (현재 테스트용으로 모두 허용)
+                    .requestMatchers("/admin/**").permitAll()
 
-        // 4. 나머지는 인증 필요
-        .anyRequest().authenticated()
-      )
-      .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+                    // 4. 이벤트는 로그인한 사용자만
+                    .requestMatchers("/events/**").authenticated()
+
+                    // 5. 나머지는 인증 필요
+                    .anyRequest().permitAll()
+            )
+            // 6. JWT 인증 필터 추가
+            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
