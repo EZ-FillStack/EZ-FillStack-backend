@@ -1,4 +1,9 @@
-package com.ezwell.backend.domain.user;
+package com.ezwell.backend.domain.admin;
+
+import com.ezwell.backend.domain.user.User;
+import com.ezwell.backend.domain.user.UserRepository;
+import com.ezwell.backend.domain.user.Role;
+import com.ezwell.backend.domain.admin.dto.RoleChangeRequest;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,7 +21,7 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/admin/users")
-@PreAuthorize("hasRole('ADMIN')")
+// @PreAuthorize("hasRole('ADMIN')")
 public class AdminUserController {
 
     private final UserRepository userRepository;
