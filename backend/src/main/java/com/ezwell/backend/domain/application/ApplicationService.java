@@ -24,14 +24,13 @@ public class ApplicationService {
 	private final ApplicationRepository applicationRepository;
 	private final EventRepository eventRepository;
 	
-
 	// 유저 확인
 	private User validateUser (HttpSession session) {
 		User user = (User) session.getAttribute("user");
 		if(user == null) throw new ApplicationEventException("로그인 후 이용 가능합니다.");
 		return user;
 	}
-	
+
 	// 이벤트 신청
 	@Transactional
 	public void applyEvent(Long eventId, HttpSession session) {
@@ -44,7 +43,7 @@ public class ApplicationService {
 		}
 		
 		// 인원 제한
-		if(event.getCurrentParticipants() >= event.getCurrentParticipants()) {
+		if(event.getCurrentParticipants() >= event.getCapacity()) {
 			throw new CapacityExceededException();
 		}
 		

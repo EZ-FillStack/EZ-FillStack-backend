@@ -12,6 +12,7 @@ import com.ezwell.backend.domain.inquiry.dto.InquiryRequest;
 import com.ezwell.backend.domain.inquiry.dto.InquiryResponse;
 import com.ezwell.backend.domain.inquiry.exception.InquiryException;
 import com.ezwell.backend.domain.user.User;
+import com.ezwell.backend.domain.user.UserRepository;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -20,13 +21,15 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InquiryService {
 	private final InquiryRepository inquiryRepository;
+	private final UserRepository userRepository; 
+	
 	
 	private User validateUser(HttpSession session) {
 		User user = (User) session.getAttribute("user");
 		if(user == null) throw new InquiryException("로그인 후 이용 가능합니다.");
 		return user;
 	}
-	
+
 	// 문의 등록
 	@Transactional
 	public void createInquiry(InquiryRequest dto, HttpSession session) {

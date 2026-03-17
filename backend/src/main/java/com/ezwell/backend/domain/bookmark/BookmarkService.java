@@ -13,6 +13,7 @@ import com.ezwell.backend.domain.event.Event;
 import com.ezwell.backend.domain.event.EventRepository;
 import com.ezwell.backend.domain.event.exception.EventNotFoundException;
 import com.ezwell.backend.domain.user.User;
+import com.ezwell.backend.domain.user.UserRepository;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,9 @@ public class BookmarkService {
 
 	private final EventRepository eventRepository;
 	private final BookmarkRepository bookmarkRepository;
-	
+
+	private final UserRepository userRepository; 
+
 	// 유저 확인
 	private User validateUser (HttpSession session) {
 		User user = (User) session.getAttribute("user");

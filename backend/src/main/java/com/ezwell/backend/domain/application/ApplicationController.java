@@ -24,14 +24,14 @@ public class ApplicationController {
 	
 	// 행사 신청
 	@PostMapping("/events/{eventId}/applications")
-	public ResponseEntity<String> apply(@PathVariable Long eventId, HttpServletRequest request){
+	public ResponseEntity<String> apply(@PathVariable("eventId") Long eventId, HttpServletRequest request){
 		applicationService.applyEvent(eventId, request.getSession());
 		return ResponseEntity.ok("신청이 완료되었습니다.");
 	}
 	
 	// 신청 취소
 	@DeleteMapping("/events/applications/{eventId}")
-	public ResponseEntity<Void> cancel(@PathVariable Long eventId, HttpServletRequest request){
+	public ResponseEntity<Void> cancel(@PathVariable("eventId") Long eventId, HttpServletRequest request){
 		applicationService.cancelApplication(eventId, request.getSession());
 		return ResponseEntity.noContent().build();
 	}

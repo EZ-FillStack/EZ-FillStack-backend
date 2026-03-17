@@ -24,7 +24,7 @@ public class InquiryController {
 	private final InquiryService inquiryService;
 	
 	// 문의하기
-	@PostMapping("/inquiries")
+	@PostMapping("/inquirie")
 	public ResponseEntity<Void> create(@RequestBody InquiryRequest dto, HttpServletRequest request){
 		inquiryService.createInquiry(dto, request.getSession());
 		return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -37,23 +37,23 @@ public class InquiryController {
 	}
 	
 	// 문의 수정
-	@PatchMapping("/inquiries/{id}")
-	public ResponseEntity<Void> updateInquiry(@PathVariable Long id, @RequestBody InquiryRequest dto,
+	@PatchMapping("/inquirie/{eventId}")
+	public ResponseEntity<Void> updateInquiry(@PathVariable("eventId") Long id, @RequestBody InquiryRequest dto,
 																		HttpServletRequest request) {
 		inquiryService.updateInquiry(id, dto, request.getSession());
 		return ResponseEntity.ok().build();
 	}
 	
 	// 문의 삭제
-	@DeleteMapping("/inquiries/{id}")
-	public ResponseEntity<Void> deleteInquiry(@PathVariable Long id, HttpServletRequest request){
+	@DeleteMapping("/inquirie/{eventId}")
+	public ResponseEntity<Void> deleteInquiry(@PathVariable("eventId") Long id, HttpServletRequest request){
 		inquiryService.deleteInquiry(id, request.getSession());
 		return ResponseEntity.noContent().build();
 	}
 	
 	// 관리자 답변
-	@PatchMapping("/admin/inquiries/{id}")
-	public ResponseEntity<Void> answer(@PathVariable Long id, @RequestBody InquiryRequest dto){
+	@PatchMapping("/admin/inquirie/{eventId}")
+	public ResponseEntity<Void> answer(@PathVariable("eventId") Long id, @RequestBody InquiryRequest dto){
 		inquiryService.answerInquiry(id, dto.getAnswerContent());
 		return ResponseEntity.ok().build();
 	}
