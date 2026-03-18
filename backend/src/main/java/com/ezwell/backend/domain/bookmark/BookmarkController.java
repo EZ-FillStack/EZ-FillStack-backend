@@ -23,14 +23,14 @@ public class BookmarkController {
 	
 	// 북마크
 	@PostMapping("/events/{eventId}/bookmark")
-	public ResponseEntity<BookmarkResponse> addBookmark(@PathVariable Long eventId, HttpServletRequest request){
+	public ResponseEntity<BookmarkResponse> addBookmark(@PathVariable("eventId") Long eventId, HttpServletRequest request){
 		BookmarkResponse response = bookmarkService.addBookmark(eventId, request.getSession());
 		return ResponseEntity.ok(response);
 	}
 	
 	// 북마크 삭제
 	@DeleteMapping("/events/{eventId}/bookmark")
-	public ResponseEntity<Void> deleteBoomark(@PathVariable Long eventId, HttpServletRequest request){
+	public ResponseEntity<Void> deleteBoomark(@PathVariable("eventId") Long eventId, HttpServletRequest request){
 		bookmarkService.deleteBookmark(eventId, request.getSession());
 		return ResponseEntity.noContent().build();
 	}

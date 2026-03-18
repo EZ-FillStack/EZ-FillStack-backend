@@ -21,11 +21,15 @@ import lombok.RequiredArgsConstructor;
 public class InquiryService {
 	private final InquiryRepository inquiryRepository;
 	
+	
 	private User validateUser(HttpSession session) {
 		User user = (User) session.getAttribute("user");
 		if(user == null) throw new InquiryException("로그인 후 이용 가능합니다.");
 		return user;
 	}
+	
+
+	/// 유저
 	
 	// 문의 등록
 	@Transactional
@@ -36,14 +40,14 @@ public class InquiryService {
 				.user(user)
 				.title(dto.getTitle())
 				.content(dto.getContent())
-				.status(InquiryStatus.UNANSERED)
+				.status(InquiryStatus.UNANSWERED)
 				.createdAt(LocalDateTime.now())
 				.build();
 		
 		inquiryRepository.save(inquiry);
 	}
 	
-	// 유저 문의 목록 조회
+	// 문의 목록 조회
 	@Transactional(readOnly=true)
 	public List<InquiryResponse> getMyInquiries(HttpSession session){
 		User user = validateUser(session);
@@ -76,6 +80,17 @@ public class InquiryService {
 			throw new InquiryException("삭제 권한이 없습니다.");
 		}
 		inquiryRepository.delete(inquiry);
+	}
+	
+	/// 관리자
+	
+	// 문의 목록 조회
+	@Transactional(readOnly = true)
+	public List<InquiryResponse> getAllInquiries(){
+		return inquiryRepository.findAllByOrderByCreatedAtDesc()
+				.stream()
+				.map(InquiryResponse::from)
+				.collect(Collectors.toList());
 	}
 	
 	// 관리자 답변 등록 & 수정

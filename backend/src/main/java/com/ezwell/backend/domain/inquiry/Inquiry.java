@@ -25,10 +25,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED) // JPA 기본 생성자 접근 제어
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Inquiry {
-	// 답변 필드 추가 필요 (answerContent, answeredAt)
-
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
@@ -60,20 +59,20 @@ public class Inquiry {
 	public Inquiry(User user, String content) {
 		this.user = user;
 		this.content = content;
-		this.status = InquiryStatus.UNANSERED;
+		this.status = InquiryStatus.UNANSWERED;
 		this.createdAt = LocalDateTime.now();
 	}
 	
 	// 관리자가 답변
 	public void answer(String answerContent) {
 		this.answerContent = answerContent;
-		this.status = InquiryStatus.ANSERED;
+		this.status = InquiryStatus.ANSWERED;
 		this.answeredAt = LocalDateTime.now();
 	}
 	
 	// 질문 수정
 	public void updateInquiry(String title, String content) {
-		if(this.status == InquiryStatus.ANSERED) {
+		if(this.status == InquiryStatus.ANSWERED) {
 			throw new InquiryException("이미 답변이 완료된 문의는 수정할 수 없습니다.");
 		}
 		this.title = title;

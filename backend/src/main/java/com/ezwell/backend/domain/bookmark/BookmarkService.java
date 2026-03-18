@@ -23,7 +23,7 @@ public class BookmarkService {
 
 	private final EventRepository eventRepository;
 	private final BookmarkRepository bookmarkRepository;
-	
+
 	// 유저 확인
 	private User validateUser (HttpSession session) {
 		User user = (User) session.getAttribute("user");
