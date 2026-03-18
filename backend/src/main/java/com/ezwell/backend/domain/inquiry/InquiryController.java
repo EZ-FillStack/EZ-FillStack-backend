@@ -23,37 +23,50 @@ import lombok.RequiredArgsConstructor;
 public class InquiryController {
 	private final InquiryService inquiryService;
 	
+	
+	/// 유저
+
 	// 문의하기
-	@PostMapping("/inquirie")
+	@PostMapping("/inquiry")
 	public ResponseEntity<Void> create(@RequestBody InquiryRequest dto, HttpServletRequest request){
 		inquiryService.createInquiry(dto, request.getSession());
 		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 	
-	// 유저 문의 내역
+	// 문의 내역
 	@GetMapping("/users/me/inquiries")
 	public ResponseEntity<List<InquiryResponse>> getMyList(HttpServletRequest request){
 		return ResponseEntity.ok(inquiryService.getMyInquiries(request.getSession()));
 	}
 	
 	// 문의 수정
-	@PatchMapping("/inquirie/{eventId}")
-	public ResponseEntity<Void> updateInquiry(@PathVariable("eventId") Long id, @RequestBody InquiryRequest dto,
+	@PatchMapping("/inquiry/{inquiryId}")
+	public ResponseEntity<Void> updateInquiry(@PathVariable("inquiryId") Long id, @RequestBody InquiryRequest dto,
 																		HttpServletRequest request) {
 		inquiryService.updateInquiry(id, dto, request.getSession());
 		return ResponseEntity.ok().build();
 	}
 	
 	// 문의 삭제
-	@DeleteMapping("/inquirie/{eventId}")
-	public ResponseEntity<Void> deleteInquiry(@PathVariable("eventId") Long id, HttpServletRequest request){
+	@DeleteMapping("/inquiry/{inquiryId}")
+	public ResponseEntity<Void> deleteInquiry(@PathVariable("inquiryId") Long id, HttpServletRequest request){
 		inquiryService.deleteInquiry(id, request.getSession());
 		return ResponseEntity.noContent().build();
 	}
 	
-	// 관리자 답변
-	@PatchMapping("/admin/inquirie/{eventId}")
-	public ResponseEntity<Void> answer(@PathVariable("eventId") Long id, @RequestBody InquiryRequest dto){
+
+	/// 관리자
+
+	// 문의 내역
+	@GetMapping("/admin/inquiries")
+	public ResponseEntity<List<InquiryResponse>> getAllInquiriesForAdmin(){
+		List<InquiryResponse>responses = inquiryService.getAllInquiries();
+		return ResponseEntity.ok(responses);
+	}
+	
+	// 문의 답변
+	@PatchMapping("/admin/inquiry/{inquiryId}")
+	public ResponseEntity<Void> answer(@PathVariable("inquiryId") Long id, @RequestBody InquiryRequest dto){
 		inquiryService.answerInquiry(id, dto.getAnswerContent());
 		return ResponseEntity.ok().build();
 	}
