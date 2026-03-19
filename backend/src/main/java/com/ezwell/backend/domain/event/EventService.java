@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.ezwell.backend.external.KopisApiClient;
 
 // 관리자 수정 DTO 추가
 import com.ezwell.backend.domain.event.dto.EventUpdateRequest;
@@ -29,6 +30,7 @@ public class EventService {
     private final CategoryRepository categoryRepository;
     private final EventRegistrationRepository eventRegistrationRepository;
     private final UserRepository userRepository;
+    private final KopisApiClient kopisApiClient;
 
     public List<EventResponse> getAllEvents() {
         return eventRepository.findAll().stream().map(EventResponse::from).toList();
@@ -144,4 +146,18 @@ public class EventService {
         }
         return cud.getUserId();
     }
+
+    // 외부 API 호출 테스트 메서드
+    public String testExternalApi() {
+
+        // 🔥 KOPIS API 호출
+        String result = kopisApiClient.getPerformances();
+
+        // 콘솔 확인용
+        System.out.println(result);
+
+        // Controller로 그대로 반환
+        return result;
+    }
+
 }
