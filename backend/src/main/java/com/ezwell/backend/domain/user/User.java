@@ -31,6 +31,11 @@ public class User {
     @Column(nullable = false)
     private Role role;
 
+
+    // 프로필 이미지
+    @Column(length = 500)
+    private String profileImageUrl;
+
     // 기본 생성 시 USER 권한 자동 부여 되게 변경
     public User(String email, String passwordHash) {
         this.email = email;
@@ -48,5 +53,9 @@ public class User {
         this.email = email;
         this.passwordHash = passwordHash;
         this.role = role;
+    }
+
+    public void updateProfileImage(String profileImageUrl) {
+        this.profileImageUrl = profileImageUrl;
     }
 }
