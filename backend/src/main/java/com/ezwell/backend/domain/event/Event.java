@@ -3,6 +3,8 @@ package com.ezwell.backend.domain.event;
 import com.ezwell.backend.domain.category.Category;
 
 import com.ezwell.backend.domain.event.exception.CapacityExceededException;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -60,6 +62,7 @@ public class Event {
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;
