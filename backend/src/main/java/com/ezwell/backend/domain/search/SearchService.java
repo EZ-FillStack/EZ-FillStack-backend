@@ -31,6 +31,6 @@ public class SearchService {
         if (keyword == null || keyword.trim().isEmpty()) {
             return searchRepository.findAll(pageRequest); 
         }
-        return searchRepository.findByTitleContaining(keyword, pageRequest);
+        return searchRepository.findByTitleContainingOrDescriptionContaining(keyword, pageRequest);
     }
 }
