@@ -1,4 +1,6 @@
 package com.ezwell.backend.domain.auth.dto;
 
-public class ResetPasswordRequest {
-}
+public record ResetPasswordRequest(
+        String token,
+        String newPassword
+) {}

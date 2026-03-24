@@ -1,4 +1,7 @@
 package com.ezwell.backend.domain.review.dto;
 
-public class ReviewCreateRequest {
-}
+public record ReviewCreateRequest(
+        Long eventId,
+        int rating,
+        String content
+) {}

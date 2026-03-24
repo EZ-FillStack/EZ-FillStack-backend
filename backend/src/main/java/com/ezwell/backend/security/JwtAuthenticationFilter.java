@@ -1,7 +1,7 @@
 package com.ezwell.backend.security;
 
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -27,9 +27,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // 2. 유효성 검사 및 인증 처리
         if (StringUtils.hasText(token) && jwtTokenProvider.isValid(token)) {
-            Authentication auth = jwtTokenProvider.getAuthentication(token);
-
-            // ContextHolder에 인증 객체 저장
+            var auth = jwtTokenProvider.getAuthentication(token);
             SecurityContextHolder.getContext().setAuthentication(auth);
         }
 
