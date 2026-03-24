@@ -24,7 +24,7 @@ public class SearchController {
 	@GetMapping
     public ResponseEntity<Page<Event>> searchEvents(
             @RequestParam(value = "keyword", required = false) String keyword,
-            @PageableDefault(size = 4) Pageable pageable) {
+            @PageableDefault(size = 10) Pageable pageable) {
 		
         // 검색어 정제(앞뒤 공백 null)
 		String searchKeyword = (keyword != null) ? keyword.trim():"";
