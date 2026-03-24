@@ -1,4 +1,5 @@
 package com.ezwell.backend.domain.auth.dto;
 
-public class ForgotPasswordRequest {
-}
+public record ForgotPasswordRequest(
+        String email
+) {}

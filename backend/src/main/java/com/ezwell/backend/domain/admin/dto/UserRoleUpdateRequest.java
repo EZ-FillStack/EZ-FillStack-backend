@@ -1,4 +1,8 @@
 package com.ezwell.backend.domain.admin.dto;
 
-public class UserRoleUpdateRequest {
-}
+import com.ezwell.backend.domain.user.Role;
+import jakarta.validation.constraints.NotNull;
+
+public record UserRoleUpdateRequest(
+        @NotNull Role role
+) {}

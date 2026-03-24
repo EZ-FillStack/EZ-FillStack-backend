@@ -1,4 +1,6 @@
 package com.ezwell.backend.domain.user.dto;
 
-public class PasswordUpdateRequest {
-}
+public record PasswordUpdateRequest(
+        String currentPassword,
+        String newPassword
+) {}
