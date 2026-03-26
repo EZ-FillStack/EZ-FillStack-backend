@@ -14,8 +14,9 @@ public class EventService {
 
     // 전체 조회
     public List<EventResponse> getAllEvents() {
-        return eventRepository.findAll()
+        return eventRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
+                .filter(event -> event.getDeletedAt() == null)
                 .map(EventResponse::from)
                 .toList();
     }
@@ -23,7 +24,11 @@ public class EventService {
     // 단건 조회
     public EventResponse getEvent(Long id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("이벤트 없음"));
+                .orElseThrow(() -> new IllegalArgumentException("EVENT_NOT_FOUND"));
+
+        if (event.getDeletedAt() != null) {
+            throw new IllegalStateException("DELETED_EVENT");
+        }
 
         return EventResponse.from(event);
     }
