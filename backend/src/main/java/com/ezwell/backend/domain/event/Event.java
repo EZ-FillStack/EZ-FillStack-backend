@@ -53,6 +53,8 @@ public class Event {
     @Column(nullable = false)
     private Integer currentParticipants = 0;
 
+    private Integer viewCount = 0;
+
     //북마크 카운트 변수
     @Column(nullable = false)
     private Integer bookmarkCount = 0;
