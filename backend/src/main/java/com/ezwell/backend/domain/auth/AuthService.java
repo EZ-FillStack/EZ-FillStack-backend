@@ -6,6 +6,7 @@ import com.ezwell.backend.domain.auth.dto.SignupRequest;
 import com.ezwell.backend.domain.user.User;
 import com.ezwell.backend.domain.user.UserRepository;
 import com.ezwell.backend.security.JwtTokenProvider;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,75 +14,69 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor // 생성자 주입을 롬복으로 깔끔하게 처리
 public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public AuthService(UserRepository userRepository,
-                       PasswordEncoder passwordEncoder,
-                       JwtTokenProvider jwtTokenProvider) {
-        this.userRepository = userRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtTokenProvider = jwtTokenProvider;
-    }
-
-    //회원가입
+    // 회원가입
     @Transactional
     public void signup(SignupRequest req) {
-        //email 여부 확인
         if (userRepository.existsByEmail(req.email())) {
             throw new IllegalStateException("EMAIL_ALREADY_EXISTS");
         }
-        String hash = passwordEncoder.encode(req.password()); //비밀번호 암호화
-        // 생성자에서 자동으로 Role.USER 들어가게 변경됨
-        userRepository.save(
-                new User(req.email(), hash, req.nickname(), req.phone())
-        );
+
+        String hash = passwordEncoder.encode(req.password());
+
+        // 빌더 패턴을 사용해 수정된 User 엔티티 구조에 맞게 저장
+        User user = User.builder()
+          .username(req.username()) // 일단 이메일을 username으로 사용 (기획에 따라 변경 가능)
+          .email(req.email())
+          .password(hash)
+          .nickname(req.nickname())
+          .phone(req.phone())
+          .provider("local")
+          .build();
+
+        userRepository.save(user);
     }
 
-    //로그인
+    // 로그인
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest req) {
-        //사용자 조회
         User user = userRepository.findByEmail(req.email())
-                .orElseThrow(() -> new IllegalStateException("INVALID_CREDENTIALS"));
+          .orElseThrow(() -> new IllegalStateException("INVALID_CREDENTIALS"));
 
-        if (!passwordEncoder.matches(req.password(), user.getPasswordHash())) {
+        // getPasswordHash -> getPassword 로 변경된 필드명 반영
+        if (!passwordEncoder.matches(req.password(), user.getPassword())) {
             throw new IllegalStateException("INVALID_CREDENTIALS");
         }
 
-        //JWT 생성
         String token = jwtTokenProvider.createAccessToken(user.getId(), user.getEmail(), user.getRole());
         return new AuthResponse(token, user.getRole().name());
     }
 
-    // 비밀번호 찾기: resetToken 발급
+    // 비밀번호 찾기 (트랜잭션 추가 권장)
+    @Transactional
     public String forgotPassword(String email) {
-
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
+          .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
 
-        // 간단 토큰 생성 (UUID)
         String token = UUID.randomUUID().toString();
-
-        user.setResetToken(token);
-
-        // 원래는 이메일 보내야 함 (지금은 반환)
+        user.setResetToken(token); // User 엔티티에 이 메서드가 있는지 확인 필요!
         return token;
     }
 
-    //비밀번호 재설정
+    // 비밀번호 재설정
+    @Transactional
     public void resetPassword(String token, String newPassword) {
-
+        // UserRepository에 findByResetToken 정의 필요
         User user = userRepository.findByResetToken(token)
-                .orElseThrow(() -> new IllegalArgumentException("INVALID_TOKEN"));
+          .orElseThrow(() -> new IllegalArgumentException("INVALID_TOKEN"));
 
-        // 비밀번호 암호화 필요 (예: BCrypt)
         String encoded = passwordEncoder.encode(newPassword);
-
         user.changePassword(encoded);
     }
-
 }
