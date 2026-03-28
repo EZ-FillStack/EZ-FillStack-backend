@@ -1,12 +1,15 @@
 package com.ezwell.backend.domain.user;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "users")
 public class User {
 
@@ -14,85 +17,83 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 이메일 (로그인 ID)
-    @Column(nullable = false, unique = true)
-    private String email;
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;
 
-    // 비밀번호
-    @Column(nullable = false)
-    private String passwordHash;
+    private String password; // 소셜 유저는 null 허용을 위해 nullable=false 제거
 
-    // 비밀번호 재설정 토큰
-    @Column(length = 100)
-    private String resetToken;
+    private String resetToken;  // 비밀번호 재설정용 토큰
 
-    // 권한
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Role role;
-
-    // 닉네임
     @Column(nullable = false)
     private String nickname;
 
-    // 전화번호
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true, length = 100)
+    private String email;
+
     private String phone;
 
-    // 프로필 이미지
+    @Column(nullable = false)
+    private String provider = "local"; // 기본값 local
+
+    private String providerId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Role role = Role.ROLE_USER;
+
+    @Column(nullable = false)
+    private String status = "ACTIVE";
+
     @Column(length = 500)
     private String profileImageUrl;
 
-    // 기본 생성자
-    public User(String email, String passwordHash, String nickname, String phone) {
-        this.email = email;
-        this.passwordHash = passwordHash;
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now();
+    private LocalDateTime deletedAt;
+
+    @Builder
+    public User(String username, String password, String nickname, String email, String phone,
+                String provider, String providerId, Role role) {
+        this.username = username;
+        this.password = password;
         this.nickname = nickname;
+        this.email = email;
         this.phone = phone;
-        this.role = Role.USER;
+        this.provider = (provider != null) ? provider : "local";
+        this.providerId = providerId;
+        this.role = (role != null) ? role : Role.ROLE_USER;
     }
 
-    // 관리자/권한 지정용 생성자 - 관리자 권한 기본 나누는 이유 물어보기
-    public User(String email, String passwordHash, Role role, String nickname, String phone) {
-        this.email = email;
-        this.passwordHash = passwordHash;
-        this.role = role;
-        this.nickname = nickname;
-        this.phone = phone;
-    }
-
-    // 권한 변경
+    // 비즈니스 로직 메서드들
     public void changeRole(Role role) {
         this.role = role;
     }
 
-    // 비밀번호 찾기용 토큰 저장
+    public void updateProfile(String nickname, String phone, String profileImageUrl) {
+        if (nickname != null) this.nickname = nickname;
+        if (phone != null) this.phone = phone;
+        if (profileImageUrl != null) this.profileImageUrl = profileImageUrl;
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public void softDelete() {
+        this.status = "DELETED";
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    // 비밀번호 찾기용 토큰 저장 (forgotPassword에서 사용)
     public void setResetToken(String token) {
         this.resetToken = token;
     }
 
-    // 비밀번호 재설정
+    // 비밀번호 재설정 (resetPassword에서 사용)
     public void changePassword(String newPasswordHash) {
-        this.passwordHash = newPasswordHash;
-        this.resetToken = null; // 사용 후 제거
+        this.password = newPasswordHash; // 필드명이 password로 바뀌었으므로 확인!
+        this.resetToken = null; // 사용 후 토큰 초기화
+        this.updatedAt = java.time.LocalDateTime.now();
     }
 
-    // 로그인 상태에서 비밀번호 변경
-    public void updatePassword(String newPasswordHash) {
-        this.passwordHash = newPasswordHash;
+    public String getPasswordHash() {
+        return this.password;
     }
-
-    // 부분 수정: null 아닌 필드만 변경
-    public void updateProfile(String nickname, String phone, String profileImageUrl) {
-        if (nickname != null) {
-            this.nickname = nickname;
-        }
-        if (phone != null) {
-            this.phone = phone;
-        }
-        if (profileImageUrl != null) {
-            this.profileImageUrl = profileImageUrl;
-        }
-    }
-
 }
