@@ -1,6 +1,7 @@
 package com.ezwell.backend.security;
 
-import com.ezwell.backend.domain.user.User;
+import com.ezwell.backend.domain.user.Role;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -8,36 +9,26 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+@Getter
 public class CustomUserDetails implements UserDetails {
 
-    private final User user;
+    private final Long userId;
+    private final String email;
+    private final Role role;
 
-    public CustomUserDetails(User user) {
-        this.user = user;
-    }
-
-    public Long getUserId() {
-        return user.getId();
-    }
-
-    public String getRole() {
-        return user.getRole().getKey();
+    public CustomUserDetails(Long userId, String email, Role role) {
+        this.userId = userId;
+        this.email = email;
+        this.role = role;
     }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole()));
+        return List.of(new SimpleGrantedAuthority(role.getKey()));
     }
 
-    @Override
-    public String getPassword() {
-        return user.getPasswordHash();
-    }
-
-    @Override
-    public String getUsername() {
-        return user.getEmail();
-    }
+    @Override public String getPassword() { return ""; }
+    @Override public String getUsername() { return email; }
 
     @Override public boolean isAccountNonExpired() { return true; }
     @Override public boolean isAccountNonLocked() { return true; }

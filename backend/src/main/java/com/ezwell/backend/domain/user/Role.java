@@ -7,8 +7,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public enum Role {
 	// Enum 상수는 세미콜론(;) 전, 최상단에 선언
-	USER("ROLE_USER", "일반 사용자"),
-	ADMIN("ROLE_ADMIN", "관리자");
+	ROLE_USER("ROLE_USER", "일반 사용자"),
+	ROLE_ADMIN("ROLE_ADMIN", "관리자");
 
 	private final String key;
 	private final String title;

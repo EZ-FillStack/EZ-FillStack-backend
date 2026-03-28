@@ -1,5 +1,6 @@
 package com.ezwell.backend.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -17,43 +18,37 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
   private final JwtTokenProvider jwtTokenProvider;
-
-  public SecurityConfig(JwtTokenProvider jwtTokenProvider) {
-    this.jwtTokenProvider = jwtTokenProvider;
-  }
+  // private final CustomOAuth2UserService customOAuth2UserService;
 
   @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
     JwtAuthenticationFilter jwtFilter = new JwtAuthenticationFilter(jwtTokenProvider);
 
     http
-            .csrf(csrf -> csrf.disable())
-            .cors(Customizer.withDefaults())
-            .headers(headers -> headers.frameOptions(frame -> frame.disable())) // H2-console iframe 허용
-            .sessionManagement(sm ->
-                    sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authorizeHttpRequests(auth -> auth
-                    // 1. 로그인/회원가입은 모두 허용
-                    .requestMatchers("/auth/**").permitAll()
-
-                    // 2. H2 데이터베이스 콘솔 접근 허용
-                    .requestMatchers("/h2-console/**").permitAll()
-
-                    // 3. 관리자 전용 API (현재 테스트용으로 모두 허용)
-                    .requestMatchers("/admin/**").permitAll()
-
-                    // 4. 이벤트는 로그인한 사용자만
-                    .requestMatchers("/events/**").authenticated()
-
-                    // 5. 나머지는 인증 필요
-                    .anyRequest().permitAll()
-            )
-            // 6. JWT 인증 필터 추가
-            .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
+      .csrf(csrf -> csrf.disable())
+      .cors(Customizer.withDefaults())
+      .headers(headers -> headers.frameOptions(frame -> frame.disable()))
+      .sessionManagement(sm ->
+        sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+      )
+      .authorizeHttpRequests(auth -> auth
+        .requestMatchers("/", "/auth/**", "/login/**", "/oauth2/**").permitAll() // 소셜 관련 경로 허용
+        .requestMatchers("/h2-console/**").permitAll()
+        .requestMatchers("/admin/**").permitAll()
+        .requestMatchers("/events/**").authenticated()
+        .anyRequest().permitAll()
+      )
+      // --- 소셜 로그인 설정 추가 ---
+      .oauth2Login(oauth2 -> oauth2
+        // .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService))
+        .defaultSuccessUrl("/") // 로그인 성공 시 이동할 페이지
+      )
+      // --------------------------
+      .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
     return http.build();
   }
