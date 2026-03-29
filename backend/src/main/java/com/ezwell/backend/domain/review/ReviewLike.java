@@ -1,5 +1,6 @@
 package com.ezwell.backend.domain.review;
 
+import com.ezwell.backend.domain.user.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,9 +11,9 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @Table(
-        name = "review_like",
+        name = "review_likes",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"member_id", "review_id"})
+                @UniqueConstraint(columnNames = {"user_id", "review_id"})
         }
 )
 public class ReviewLike {
@@ -21,16 +22,18 @@ public class ReviewLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    @Column(name = "review_id", nullable = false)
-    private Long reviewId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "review_id")
+    private Review review;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public ReviewLike(Long memberId, Long reviewId) {
-        this.memberId = memberId;
-        this.reviewId = reviewId;
+    public ReviewLike(User user, Review review) {
+        this.user = user;
+        this.review = review;
     }
 }

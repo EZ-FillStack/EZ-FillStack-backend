@@ -36,7 +36,7 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // ⭐ 핵심: DB 조회 없이 인증 객체 생성
+    // 핵심: DB 조회 없이 인증 객체 생성
     public Authentication getAuthentication(String token) {
 
         Claims claims = parse(token).getBody();

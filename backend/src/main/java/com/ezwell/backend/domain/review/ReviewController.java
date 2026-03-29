@@ -2,6 +2,7 @@ package com.ezwell.backend.domain.review;
 
 import com.ezwell.backend.domain.review.dto.ReviewCreateRequest;
 import com.ezwell.backend.domain.review.dto.ReviewResponse;
+import com.ezwell.backend.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,31 +14,41 @@ import java.util.List;
 public class ReviewController {
 
     private final ReviewService reviewService;
+    private final JwtTokenProvider jwtTokenProvider;
 
-    // 리뷰 작성
     @PostMapping
-    public void createReview(@RequestBody ReviewCreateRequest request) {
-
-        Long userId = 1L; // JWT로 교체 예정
-
+    public void createReview(
+            @RequestHeader("Authorization") String token,
+            @RequestBody ReviewCreateRequest request
+    ) {
+        Long userId = extractUserId(token);
         reviewService.createReview(userId, request);
     }
 
-    // 리뷰 조회
     @GetMapping("/events/{eventId}")
-    public List<ReviewResponse> getReviews(@PathVariable Long eventId) {
-
-        Long userId = 1L; // JWT로 변경 예정
-
+    public List<ReviewResponse> getReviews(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long eventId
+    ) {
+        Long userId = extractUserId(token);
         return reviewService.getReviews(eventId, userId);
     }
 
-    // hasReview
     @GetMapping("/events/{eventId}/me")
-    public boolean hasReview(@PathVariable Long eventId) {
-
-        Long userId = 1L;
-
+    public boolean hasReview(
+            @RequestHeader("Authorization") String token,
+            @PathVariable Long eventId
+    ) {
+        Long userId = extractUserId(token);
         return reviewService.hasReview(userId, eventId);
+    }
+
+    private Long extractUserId(String token) {
+        String pureToken = token.replace("Bearer ", "");
+
+        return jwtTokenProvider.parse(pureToken)
+                .getBody()
+                .get("userId", Integer.class)
+                .longValue();
     }
 }
