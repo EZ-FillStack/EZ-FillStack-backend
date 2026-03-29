@@ -96,4 +96,9 @@ public class User {
     public String getPasswordHash() {
         return this.password;
     }
+
+	public void updateProfileImage(String newImageUrl) {
+		this.profileImageUrl = newImageUrl;
+	}
+    
 }
