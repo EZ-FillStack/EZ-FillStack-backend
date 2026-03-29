@@ -15,7 +15,7 @@ public class Review {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Long memberId;
+    private Long userId;
     private Long eventId;
 
     private int rating;
@@ -25,8 +25,8 @@ public class Review {
 
     private LocalDateTime createdAt;
 
-    public Review(Long memberId, Long eventId, int rating, String content) {
-        this.memberId = memberId;
+    public Review(Long userId, Long eventId, int rating, String content) {
+        this.userId = userId;
         this.eventId = eventId;
         this.rating = rating;
         this.content = content;

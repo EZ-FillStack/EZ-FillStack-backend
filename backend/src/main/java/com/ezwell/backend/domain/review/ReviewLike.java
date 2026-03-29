@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 @Table(
         name = "review_like",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"member_id", "review_id"})
+                @UniqueConstraint(columnNames = {"user_id", "review_id"})
         }
 )
 public class ReviewLike {
@@ -21,16 +21,16 @@ public class ReviewLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "member_id", nullable = false)
-    private Long memberId;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
     @Column(name = "review_id", nullable = false)
     private Long reviewId;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    public ReviewLike(Long memberId, Long reviewId) {
-        this.memberId = memberId;
+    public ReviewLike(Long userId, Long reviewId) {
+        this.userId = userId;
         this.reviewId = reviewId;
     }
 }
