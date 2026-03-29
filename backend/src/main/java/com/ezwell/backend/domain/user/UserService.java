@@ -46,6 +46,6 @@ public class UserService {
             throw new IllegalArgumentException("INVALID_PASSWORD");
         }
 
-        user.updatePassword(passwordEncoder.encode(request.newPassword()));
+        user.changePassword(passwordEncoder.encode(request.newPassword()));
     }
 }
