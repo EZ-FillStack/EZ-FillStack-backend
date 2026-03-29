@@ -56,4 +56,3 @@ spring:
 #            authorization-uri: https://kauth.kakao.com/oauth/authorize
 #            token-uri: https://kweb.kakao.com/oauth/token # 혹은 https://kauth.kakao.com/oauth/token
 #            user-info-uri: https://kapi.kakao.com/v2/user/me
-#            user-name-attribute: id # 카카오는 식별자가 id임
