@@ -1,7 +1,11 @@
 package com.ezwell.backend.domain.review;
 
+import com.ezwell.backend.domain.event.Event;
+import com.ezwell.backend.domain.event.EventRepository;
 import com.ezwell.backend.domain.review.dto.ReviewCreateRequest;
 import com.ezwell.backend.domain.review.dto.ReviewResponse;
+import com.ezwell.backend.domain.user.User;
+import com.ezwell.backend.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -12,31 +16,36 @@ import java.util.List;
 public class ReviewService {
 
     private final ReviewRepository reviewRepository;
+    private final UserRepository userRepository;
+    private final EventRepository eventRepository;
 
-    // 리뷰 작성 (중복 방지)
     public void createReview(Long userId, ReviewCreateRequest request) {
 
-        if (reviewRepository.existsByMemberIdAndEventId(userId, request.eventId())) {
+        if (reviewRepository.existsByUser_IdAndEvent_Id(userId, request.eventId())) {
             throw new IllegalStateException("ALREADY_REVIEWED");
         }
 
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
+
+        Event event = eventRepository.findById(request.eventId())
+                .orElseThrow(() -> new IllegalArgumentException("EVENT_NOT_FOUND"));
+
         Review review = new Review(
-                userId,
-                request.eventId(),
-                request.rating(),
-                request.content()
+                user,
+                event,
+                request.content(),
+                request.rating()
         );
 
         reviewRepository.save(review);
     }
 
-    // 조회
     public List<ReviewResponse> getReviews(Long eventId, Long userId) {
         return reviewRepository.findReviewsWithLikeAndVoted(eventId, userId);
     }
 
-    // hasReview
     public boolean hasReview(Long userId, Long eventId) {
-        return reviewRepository.existsByMemberIdAndEventId(userId, eventId);
+        return reviewRepository.existsByUser_IdAndEvent_Id(userId, eventId);
     }
 }

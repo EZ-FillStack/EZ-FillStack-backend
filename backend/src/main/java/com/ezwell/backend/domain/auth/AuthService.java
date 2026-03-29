@@ -58,25 +58,22 @@ public class AuthService {
         return new AuthResponse(token, user.getRole().name());
     }
 
-    // 비밀번호 찾기 (트랜잭션 추가 권장)
-    @Transactional
+    // 비밀번호 찾기
     public String forgotPassword(String email) {
         User user = userRepository.findByEmail(email)
-          .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
+                .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
 
         String token = UUID.randomUUID().toString();
-        user.setResetToken(token); // User 엔티티에 이 메서드가 있는지 확인 필요!
+        user.setResetToken(token);
+
         return token;
     }
-
     // 비밀번호 재설정
-    @Transactional
     public void resetPassword(String token, String newPassword) {
-        // UserRepository에 findByResetToken 정의 필요
         User user = userRepository.findByResetToken(token)
-          .orElseThrow(() -> new IllegalArgumentException("INVALID_TOKEN"));
+                .orElseThrow(() -> new IllegalArgumentException("INVALID_TOKEN"));
 
-        String encoded = passwordEncoder.encode(newPassword);
-        user.changePassword(encoded);
+        user.changePassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null); // 재사용 방지
     }
 }

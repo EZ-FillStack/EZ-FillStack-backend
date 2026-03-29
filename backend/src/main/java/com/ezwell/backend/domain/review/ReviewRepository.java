@@ -8,12 +8,11 @@ import java.util.List;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
-    // JOIN으로 한번에 가져오기
     @Query("""
     SELECT new com.ezwell.backend.domain.review.dto.ReviewResponse(
         r.id,
-        r.memberId,
-        r.eventId,
+        r.user.id,
+        r.event.id,
         u.nickname,
         e.title,
         r.rating,
@@ -26,16 +25,15 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
         r.createdAt
     )
     FROM Review r
-    JOIN User u ON r.memberId = u.id
-    JOIN Event e ON r.eventId = e.id
-    LEFT JOIN ReviewLike rl ON rl.reviewId = r.id
+    JOIN r.user u
+    JOIN r.event e
+    LEFT JOIN ReviewLike rl ON rl.review = r
     LEFT JOIN ReviewLike rl2 
-        ON rl2.reviewId = r.id AND rl2.memberId = :userId
-    WHERE r.eventId = :eventId
-    GROUP BY r.id, u.nickname, e.title
-""")
+        ON rl2.review = r AND rl2.user.id = :userId
+    WHERE r.event.id = :eventId
+    GROUP BY r.id, r.user.id, r.event.id, u.nickname, e.title, r.rating, r.content, r.createdAt
+    """)
     List<ReviewResponse> findReviewsWithLikeAndVoted(Long eventId, Long userId);
 
-    // 중복 체크
-    boolean existsByMemberIdAndEventId(Long memberId, Long eventId);
+    boolean existsByUser_IdAndEvent_Id(Long userId, Long eventId);
 }
