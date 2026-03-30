@@ -17,7 +17,7 @@ public class InquiryResponse {
 	private String title;
 	private String content;
 	private InquiryStatus status;
-	private String answerContent;
+	private String replyEmail;
 	private LocalDateTime createdAt;
 	private LocalDateTime answeredAt;
 	
@@ -27,7 +27,7 @@ public class InquiryResponse {
 				.title(inquiry.getTitle())
 				.content(inquiry.getContent())
 				.status(inquiry.getStatus())
-				.answerContent(inquiry.getAnswerContent())
+				.replyEmail(inquiry.getReplyEmail())
 				.createdAt(inquiry.getCreatedAt())
 				.answeredAt(inquiry.getAnsweredAt())
 				.build();

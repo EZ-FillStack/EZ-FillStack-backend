@@ -64,10 +64,10 @@ public class InquiryController {
 		return ResponseEntity.ok(responses);
 	}
 	
-	// 문의 답변
+	// 문의 답변 -> 유저 이메일 전송
 	@PatchMapping("/admin/inquiry/{inquiryId}")
 	public ResponseEntity<Void> answer(@PathVariable("inquiryId") Long id, @RequestBody InquiryRequest dto){
-		inquiryService.answerInquiry(id, dto.getAnswerContent());
+		inquiryService.answerInquiry(id, dto.getReplyContent());
 		return ResponseEntity.ok().build();
 	}
 }

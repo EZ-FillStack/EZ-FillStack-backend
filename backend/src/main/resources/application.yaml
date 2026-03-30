@@ -62,6 +62,19 @@ spring:
   cache:
     type: simple
 
+# Gmail
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ez.fillstack@gmail.com
+    password: bpsv vmda axvi jflv
+    properties:
+      mail:
+        smtp: 
+          auth: true
+          starttls:
+            enable: true
+
 # cloudflare token
 cloudflare:
   r2:
