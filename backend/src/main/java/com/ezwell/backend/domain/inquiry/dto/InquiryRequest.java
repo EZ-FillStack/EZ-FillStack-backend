@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 public class InquiryRequest {
 	private String title;
 	private String content;
-	private String answerContent; // 관리자 답변
+	private String replyContent; // 관리자 답변
 }

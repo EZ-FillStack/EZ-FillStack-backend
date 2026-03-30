@@ -46,8 +46,8 @@ public class Inquiry {
 	private String content;
 	
 	// 답변 내용
-	@Column(columnDefinition = "TEXT")
-	private String answerContent;
+	@Column(name="reply_email",columnDefinition = "TEXT")
+	private String replyEmail;
 	
 	// 질문 상태
 	@Enumerated(EnumType.STRING)
@@ -65,9 +65,9 @@ public class Inquiry {
 		this.createdAt = LocalDateTime.now();
 	}
 	
-	// 관리자가 답변
-	public void answer(String answerContent) {
-		this.answerContent = answerContent;
+	// 관리자 답변 이메일 전송
+	public void answer(String replyEmail) {
+		this.replyEmail = replyEmail;
 		this.status = InquiryStatus.ANSWERED;
 		this.answeredAt = LocalDateTime.now();
 	}

@@ -1,7 +1,7 @@
 spring:
   # 1. 데이터베이스 설정
   datasource:
-    url: jdbc:mysql://localhost:3306/ez_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://localhost:3306/ego_db?serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     username: root
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -56,3 +56,30 @@ spring:
 #            authorization-uri: https://kauth.kakao.com/oauth/authorize
 #            token-uri: https://kweb.kakao.com/oauth/token # 혹은 https://kauth.kakao.com/oauth/token
 #            user-info-uri: https://kapi.kakao.com/v2/user/me
+# 
+
+# 검색 캐쉬
+  cache:
+    type: simple
+
+# Gmail
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ez.fillstack@gmail.com
+    password: bpsv vmda axvi jflv
+    properties:
+      mail:
+        smtp: 
+          auth: true
+          starttls:
+            enable: true
+
+# cloudflare token
+cloudflare:
+  r2:
+    endpoint: https://pub-abe5952db726492dbfcf21b4743e703f.r2.dev
+    bucket-name: ego
+    access-key: 047148fc458b167fa8aea246ebf75df7
+    secret-key: 0df84c49dbc819277ff1ae069ccc29c39d78b24d0b7c101eea334fa377bcdf62
+    region: auto

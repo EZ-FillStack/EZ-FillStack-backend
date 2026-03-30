@@ -5,9 +5,13 @@ import com.ezwell.backend.domain.user.dto.UserResponse;
 import com.ezwell.backend.domain.user.dto.UserUpdateRequest;
 import com.ezwell.backend.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
@@ -42,5 +46,16 @@ public class UserController {
     ) {
         userService.changePassword(userDetails.getUserId(), request);
         return ResponseEntity.ok().build();
+    }
+    
+    // 프로필 이미지 수정
+    @PatchMapping("/me/profile-image")
+    public ResponseEntity<Map<String, String>> updateProfileImage(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @RequestParam("file") MultipartFile file) {
+ 
+        String imageUrl = userService.updateProfileImage(userDetails.getUserId(), file);
+ 
+        return ResponseEntity.ok(Map.of("profileImageUrl", imageUrl));
     }
 }

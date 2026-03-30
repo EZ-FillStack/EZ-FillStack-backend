@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class InquiryService {
 	private final InquiryRepository inquiryRepository;
+	private final InquiryMailService inquiryMailService;
 	
 	
 	private User validateUser(HttpSession session) {
@@ -93,11 +94,17 @@ public class InquiryService {
 				.collect(Collectors.toList());
 	}
 	
-	// 관리자 답변 등록 & 수정
+	// 관리자 답변 등록 -> DB 저장 + 이메일 발송
 	@Transactional
-	public void answerInquiry(Long inquiryId, String answerContent) {
+	public void answerInquiry(Long inquiryId, String replyContent) {
 		Inquiry inquiry = inquiryRepository.findById(inquiryId)
 				.orElseThrow(()-> new InquiryException("문의를 찾을 수 없습니다."));
-		inquiry.answer(answerContent);
+		
+		// 1. DB 답변 내용 저장 + 상태변경
+		inquiry.answer(replyContent);
+		
+		// 2. 유저 이메일로 답변 전송
+		String toEmail = inquiry.getUser().getEmail();
+		inquiryMailService.sendReplyEmail(toEmail, inquiry.getTitle(), replyContent);
 	}
 }
