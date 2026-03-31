@@ -10,9 +10,9 @@ import com.ezwell.backend.domain.event.Event;
 
 public interface SearchRepository extends JpaRepository<Event,Long>{
 	@Query("""
-			SELECT e FROM event e
-			WHERE e.title LIKE %:keyword% ESCAPE '\\\\'
-			OR e.description LIKE %:keyword% ESCAPE '\\\\'
+			SELECT e FROM Event e
+			WHERE e.title LIKE %:keyword% 
+			OR e.description LIKE %:keyword% 
 			""")
 	
 	Page<Event> findByTitleContainingOrDescriptionContaining(

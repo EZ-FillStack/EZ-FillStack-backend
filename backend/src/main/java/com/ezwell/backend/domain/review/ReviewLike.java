@@ -1,6 +1,5 @@
 package com.ezwell.backend.domain.review;
 
-import com.ezwell.backend.domain.user.User;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,18 +21,18 @@ public class ReviewLike {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "review_id")
-    private Review review;
+    @Column(name = "review_id", nullable = false)
+    private Long reviewId;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 
-    public ReviewLike(User user, Review review) {
-        this.user = user;
-        this.review = review;
+    public ReviewLike(Long userId, Long reviewId) {
+        this.userId = userId;
+        this.reviewId = reviewId;
+        this.createdAt = LocalDateTime.now();
     }
 }

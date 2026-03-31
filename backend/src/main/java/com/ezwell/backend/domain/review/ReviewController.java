@@ -2,8 +2,9 @@ package com.ezwell.backend.domain.review;
 
 import com.ezwell.backend.domain.review.dto.ReviewCreateRequest;
 import com.ezwell.backend.domain.review.dto.ReviewResponse;
-import com.ezwell.backend.security.JwtTokenProvider;
+import com.ezwell.backend.security.CustomUserDetails;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,41 +15,31 @@ import java.util.List;
 public class ReviewController {
 
     private final ReviewService reviewService;
-    private final JwtTokenProvider jwtTokenProvider;
 
+    // 리뷰 작성
     @PostMapping
     public void createReview(
-            @RequestHeader("Authorization") String token,
+            @AuthenticationPrincipal CustomUserDetails user,
             @RequestBody ReviewCreateRequest request
     ) {
-        Long userId = extractUserId(token);
-        reviewService.createReview(userId, request);
+        reviewService.createReview(user.getUserId(), request);
     }
 
+    // 리뷰 조회
     @GetMapping("/events/{eventId}")
     public List<ReviewResponse> getReviews(
-            @RequestHeader("Authorization") String token,
-            @PathVariable Long eventId
+            @PathVariable Long eventId,
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        Long userId = extractUserId(token);
-        return reviewService.getReviews(eventId, userId);
+        return reviewService.getReviews(eventId, user.getUserId());
     }
 
-    @GetMapping("/events/{eventId}/me")
-    public boolean hasReview(
-            @RequestHeader("Authorization") String token,
-            @PathVariable Long eventId
+    // 좋아요 토글
+    @PostMapping("/{reviewId}/like")
+    public void like(
+            @PathVariable Long reviewId,
+            @AuthenticationPrincipal CustomUserDetails user
     ) {
-        Long userId = extractUserId(token);
-        return reviewService.hasReview(userId, eventId);
-    }
-
-    private Long extractUserId(String token) {
-        String pureToken = token.replace("Bearer ", "");
-
-        return jwtTokenProvider.parse(pureToken)
-                .getBody()
-                .get("userId", Integer.class)
-                .longValue();
+        reviewService.toggleLike(user.getUserId(), reviewId);
     }
 }

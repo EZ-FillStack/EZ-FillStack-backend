@@ -1,45 +1,27 @@
 package com.ezwell.backend.domain.event;
 
 import com.ezwell.backend.domain.category.Category;
-
-import com.ezwell.backend.domain.event.exception.CapacityExceededException;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * 이벤트 엔티티
- * - 선착순 이벤트
- * - 상태 기반 신청 가능
- */
 @Entity
 @Getter
 @NoArgsConstructor
-@Table(name = "events")
 public class Event {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 동시에 여러 명이 신청해도 version값이 다르면 업데이트 실패
-    @Version
-    private Long version;
-
-    @Column(nullable = false)
     private String title;
-
     private String thumbnailUrl;
-
-    @Column(columnDefinition = "TEXT")
     private String description;
-
     private String address;
     private String placeName;
+
 
     private LocalDateTime eventStartDateTime;
     private LocalDateTime eventEndDateTime;
@@ -47,103 +29,36 @@ public class Event {
     private LocalDateTime applyStartDateTime;
     private LocalDateTime applyEndDateTime;
 
-    @Column(nullable = false)
     private Integer capacity;
 
-    @Column(nullable = false)
+
     private Integer currentParticipants = 0;
-
-    private Integer viewCount = 0;
-
-    //북마크 카운트 변수
-    @Column(nullable = false)
     private Integer bookmarkCount = 0;
+
+    private LocalDateTime deletedAt;
+    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
     private Category category;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime deletedAt;
-
-    public Event(String title, Integer capacity, Category category) {
-        this.title = title;
-        this.capacity = capacity;
-        this.category = category;
-        this.status = EventStatus.UPCOMING;
-        this.createdAt = LocalDateTime.now();
-    }
-
-    // 신청 가능 여부 체크
-    public void validateApplicable(LocalDateTime now) {
-
-        if (deletedAt != null) {
-            throw new IllegalStateException("DELETED_EVENT");
-        }
-
-        if (status != EventStatus.OPEN) {
-            throw new IllegalStateException("NOT_OPEN");
-        }
-
-        if (applyStartDateTime != null && now.isBefore(applyStartDateTime)) {
-            throw new IllegalStateException("BEFORE_APPLY_START");
-        }
-
-        if (applyEndDateTime != null && now.isAfter(applyEndDateTime)) {
-            throw new IllegalStateException("AFTER_APPLY_END");
-        }
-    }
-
-
-    // 정원 초과 방지 및 정원 도달 시 자동 마감
-    public void increaseParticipants() {
-        if (currentParticipants >= capacity) {
-            throw new CapacityExceededException();
-        }
-
-        this.currentParticipants++;
-
-        if (this.currentParticipants.equals(this.capacity)) {
-            this.status = EventStatus.CLOSED;
-        }
-    }
-
-    // 신청 취소
-    public void decreaseParticipants() {
-        if (currentParticipants > 0) {
-            this.currentParticipants--;
-        }
-    }
-    // ======================================================
-    // 아래 내용 2/25 추가
-    // ======================================================
-
-    // 소프트 삭제 처리 추가
-    public void markDeleted() {
-        this.deletedAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    /**
-     *  관리자 수정용 메서드 추가
-     */
-    public void update(String title,
-                       String thumbnailUrl,
-                       String description,
-                       String address,
-                       String placeName,
-                       LocalDateTime eventStartDateTime,
-                       LocalDateTime eventEndDateTime,
-                       LocalDateTime applyStartDateTime,
-                       LocalDateTime applyEndDateTime,
-                       Integer capacity,
-                       Category category) {
-
+    // 생성자
+    public Event(
+            String title,
+            String thumbnailUrl,
+            String description,
+            String address,
+            String placeName,
+            LocalDateTime eventStartDateTime,
+            LocalDateTime eventEndDateTime,
+            LocalDateTime applyStartDateTime,
+            LocalDateTime applyEndDateTime,
+            Integer capacity,
+            Category category
+    ) {
         this.title = title;
         this.thumbnailUrl = thumbnailUrl;
         this.description = description;
@@ -155,49 +70,94 @@ public class Event {
         this.applyEndDateTime = applyEndDateTime;
         this.capacity = capacity;
         this.category = category;
-
-        this.updatedAt = LocalDateTime.now(); // 수정 시간 갱신
+        this.status = EventStatus.UPCOMING;
     }
 
-    /**
-     *  스케줄러에서 자동 마감 처리용 추가
-     */
-    public void close() {
-        this.status = EventStatus.CLOSED;
-        this.updatedAt = LocalDateTime.now();
-    }
+    // =========================
+    // 상태 관련
+    // =========================
 
-    public void open() {
-        if (deletedAt != null) return;
-        this.status = EventStatus.OPEN;
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    /**
-     *  신청 시작 시 자동 OPEN 전환 추가
-     */
     public void openIfApplicable(LocalDateTime now) {
-        if (deletedAt != null) return;
-
-        if (status == EventStatus.UPCOMING
-                && applyStartDateTime != null
-                && now.isAfter(applyStartDateTime)
-                && (applyEndDateTime == null || now.isBefore(applyEndDateTime))) {
-
+        if (this.applyStartDateTime != null && now.isAfter(this.applyStartDateTime)) {
             this.status = EventStatus.OPEN;
-            this.updatedAt = LocalDateTime.now();
         }
     }
 
-    // 북마크 증가
+    public void close() {
+        this.status = EventStatus.CLOSED;
+    }
+
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    // =========================
+    // 업데이트
+    // =========================
+
+    public void update(
+            String title,
+            String thumbnailUrl,
+            String description,
+            String address,
+            String placeName,
+            LocalDateTime eventStartDateTime,
+            LocalDateTime eventEndDateTime,
+            LocalDateTime applyStartDateTime,
+            LocalDateTime applyEndDateTime,
+            Integer capacity,
+            Category category
+    ) {
+        if (title != null) this.title = title;
+        if (thumbnailUrl != null) this.thumbnailUrl = thumbnailUrl;
+        if (description != null) this.description = description;
+        if (address != null) this.address = address;
+        if (placeName != null) this.placeName = placeName;
+        if (eventStartDateTime != null) this.eventStartDateTime = eventStartDateTime;
+        if (eventEndDateTime != null) this.eventEndDateTime = eventEndDateTime;
+        if (applyStartDateTime != null) this.applyStartDateTime = applyStartDateTime;
+        if (applyEndDateTime != null) this.applyEndDateTime = applyEndDateTime;
+        if (capacity != null) this.capacity = capacity;
+        if (category != null) this.category = category;
+    }
+
+    // =========================
+    // 참가자 관리
+    // =========================
+
+    public Integer getCurrentParticipants() {
+        return currentParticipants;
+    }
+
+    public void increaseParticipants() {
+        if (this.currentParticipants == null) {
+            this.currentParticipants = 0;
+        }
+        this.currentParticipants++;
+    }
+
+    public void decreaseParticipants() {
+        if (this.currentParticipants == null || this.currentParticipants == 0) {
+            return;
+        }
+        this.currentParticipants--;
+    }
+
+    // =========================
+    // 북마크 관리
+    // =========================
+
     public void increaseBookmarkCount() {
+        if (this.bookmarkCount == null) {
+            this.bookmarkCount = 0;
+        }
         this.bookmarkCount++;
     }
 
-    // 북마크 감소
     public void decreaseBookmarkCount() {
-        if (this.bookmarkCount > 0) {
-            this.bookmarkCount--;
+        if (this.bookmarkCount == null || this.bookmarkCount == 0) {
+            return;
         }
+        this.bookmarkCount--;
     }
 }

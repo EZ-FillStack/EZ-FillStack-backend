@@ -17,20 +17,19 @@ public class EventScheduler {
 
     private final EventRepository eventRepository;
 
-    /**
-     * 1분마다 이벤트 상태 자동 업데이트
-     */
     @Scheduled(fixedRate = 60000)
     @Transactional
     public void updateEventStatus() {
 
         LocalDateTime now = LocalDateTime.now();
-
         List<Event> events = eventRepository.findAll();
 
         for (Event event : events) {
 
-            if (event.getDeletedAt() != null) continue;
+            // 삭제된 이벤트 skip
+            if (event.getDeletedAt() != null) {
+                continue;
+            }
 
             // 신청 시작 → OPEN
             if (event.getStatus() == EventStatus.UPCOMING) {
@@ -40,14 +39,15 @@ public class EventScheduler {
             // 신청 종료 → CLOSED
             if (event.getApplyEndDateTime() != null
                     && now.isAfter(event.getApplyEndDateTime())
-                    && event.getStatus() != EventStatus.CLOSED) {
+                    && event.getStatus() == EventStatus.OPEN) {
 
                 event.close();
             }
 
-            // 이벤트 종료 시 자동 마감
+            // 이벤트 종료 → CLOSED
             if (event.getEventEndDateTime() != null
-                    && now.isAfter(event.getEventEndDateTime())) {
+                    && now.isAfter(event.getEventEndDateTime())
+                    && event.getStatus() != EventStatus.CLOSED) {
 
                 event.close();
             }

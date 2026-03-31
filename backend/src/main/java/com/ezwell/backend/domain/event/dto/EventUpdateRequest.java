@@ -1,18 +1,24 @@
 package com.ezwell.backend.domain.event.dto;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.Min;
 
 import java.time.LocalDateTime;
 
-@Getter
-@NoArgsConstructor
-public class EventUpdateRequest {
+public record EventUpdateRequest(
 
-    private String title;
-    private String description;
-    private Integer capacity;
-    private LocalDateTime startAt;
-    private LocalDateTime endAt;
-    private Long categoryId; // 카테고리 변경 가능하도록
-}
+        String title,
+        String thumbnailUrl,
+        String description,
+        String address,
+        String placeName,
+
+        LocalDateTime eventStartDateTime,
+        LocalDateTime eventEndDateTime,
+
+        LocalDateTime applyStartDateTime,
+        LocalDateTime applyEndDateTime,
+
+        @Min(1) Integer capacity,
+
+        Long categoryId
+) {}
