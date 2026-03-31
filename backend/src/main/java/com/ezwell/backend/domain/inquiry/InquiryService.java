@@ -5,6 +5,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,8 +14,9 @@ import com.ezwell.backend.domain.inquiry.dto.InquiryRequest;
 import com.ezwell.backend.domain.inquiry.dto.InquiryResponse;
 import com.ezwell.backend.domain.inquiry.exception.InquiryException;
 import com.ezwell.backend.domain.user.User;
+import com.ezwell.backend.domain.user.UserRepository;
+import com.ezwell.backend.security.CustomUserDetails;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -21,21 +24,22 @@ import lombok.RequiredArgsConstructor;
 public class InquiryService {
 	private final InquiryRepository inquiryRepository;
 	private final InquiryMailService inquiryMailService;
-	
-	
-	private User validateUser(HttpSession session) {
-		User user = (User) session.getAttribute("user");
-		if(user == null) throw new InquiryException("로그인 후 이용 가능합니다.");
-		return user;
-	}
+    private final UserRepository userRepository;
+
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new InquiryException("로그인 후 이용 가능합니다."));
+    }
 	
 
 	/// 유저
 	
 	// 문의 등록
 	@Transactional
-	public void createInquiry(InquiryRequest dto, HttpSession session) {
-		User user = validateUser(session);
+	public void createInquiry(InquiryRequest dto) {
+        User user = getCurrentUser();
 		
 		Inquiry inquiry = Inquiry.builder()
 				.user(user)
@@ -50,8 +54,8 @@ public class InquiryService {
 	
 	// 문의 목록 조회
 	@Transactional(readOnly=true)
-	public List<InquiryResponse> getMyInquiries(HttpSession session){
-		User user = validateUser(session);
+	public List<InquiryResponse> getMyInquiries(){
+        User user = getCurrentUser();
 		return inquiryRepository.findAllByUserOrderByCreatedAtDesc(user).stream()
 				.map(InquiryResponse::from)
 				.collect(Collectors.toList());
@@ -59,8 +63,8 @@ public class InquiryService {
 	
 	// 문의 수정
 	@Transactional
-	public void updateInquiry(Long id, InquiryRequest dto, HttpSession session) {
-		User user = validateUser(session);
+	public void updateInquiry(Long id, InquiryRequest dto) {
+        User user = getCurrentUser();
 		Inquiry inquiry = inquiryRepository.findById(id)
 				.orElseThrow(()-> new InquiryException("문의를 찾을 수 없습니다."));
 		// 본인 확인
@@ -72,8 +76,8 @@ public class InquiryService {
 	
 	// 문의 삭제
 	@Transactional
-	public void deleteInquiry(Long inquiryId, HttpSession session) {
-		User user = validateUser(session);
+	public void deleteInquiry(Long inquiryId) {
+        User user = getCurrentUser();
 		Inquiry inquiry = inquiryRepository.findById(inquiryId)
 				.orElseThrow(()-> new InquiryException("문의를 찾을 수 없습니다."));
 		// 본인 확인

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ezwell.backend.domain.inquiry.dto.InquiryRequest;
 import com.ezwell.backend.domain.inquiry.dto.InquiryResponse;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -28,29 +27,28 @@ public class InquiryController {
 
 	// 문의하기
 	@PostMapping("/inquiry")
-	public ResponseEntity<Void> create(@RequestBody InquiryRequest dto, HttpServletRequest request){
-		inquiryService.createInquiry(dto, request.getSession());
+	public ResponseEntity<Void> create(@RequestBody InquiryRequest dto){
+		inquiryService.createInquiry(dto);
 		return ResponseEntity.status(HttpStatus.CREATED).build();
 	}
 	
 	// 문의 내역
 	@GetMapping("/users/me/inquiries")
-	public ResponseEntity<List<InquiryResponse>> getMyList(HttpServletRequest request){
-		return ResponseEntity.ok(inquiryService.getMyInquiries(request.getSession()));
+	public ResponseEntity<List<InquiryResponse>> getMyList(){
+		return ResponseEntity.ok(inquiryService.getMyInquiries());
 	}
 	
 	// 문의 수정
 	@PatchMapping("/inquiry/{inquiryId}")
-	public ResponseEntity<Void> updateInquiry(@PathVariable("inquiryId") Long id, @RequestBody InquiryRequest dto,
-																		HttpServletRequest request) {
-		inquiryService.updateInquiry(id, dto, request.getSession());
+	public ResponseEntity<Void> updateInquiry(@PathVariable("inquiryId") Long id, @RequestBody InquiryRequest dto) {
+		inquiryService.updateInquiry(id, dto);
 		return ResponseEntity.ok().build();
 	}
 	
 	// 문의 삭제
 	@DeleteMapping("/inquiry/{inquiryId}")
-	public ResponseEntity<Void> deleteInquiry(@PathVariable("inquiryId") Long id, HttpServletRequest request){
-		inquiryService.deleteInquiry(id, request.getSession());
+	public ResponseEntity<Void> deleteInquiry(@PathVariable("inquiryId") Long id){
+		inquiryService.deleteInquiry(id);
 		return ResponseEntity.noContent().build();
 	}
 	

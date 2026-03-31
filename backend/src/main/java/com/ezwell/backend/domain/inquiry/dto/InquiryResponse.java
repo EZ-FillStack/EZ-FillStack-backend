@@ -8,9 +8,11 @@ import com.ezwell.backend.domain.inquiry.InquiryStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@NoArgsConstructor
 @AllArgsConstructor
 public class InquiryResponse {
 	private Long id;
