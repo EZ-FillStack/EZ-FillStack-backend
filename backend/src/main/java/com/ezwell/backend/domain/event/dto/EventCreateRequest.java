@@ -12,30 +12,17 @@ public record EventCreateRequest(
         String title,
 
         String thumbnailUrl,
-
         String description,
-
         String address,
-
         String placeName,
 
-        @NotNull(message = "이벤트 시작 시간은 필수입니다.")
-        LocalDateTime eventStartDateTime,
+        @NotNull LocalDateTime eventStartDateTime,
+        @NotNull LocalDateTime eventEndDateTime,
 
-        @NotNull(message = "이벤트 종료 시간은 필수입니다.")
-        LocalDateTime eventEndDateTime,
+        @NotNull LocalDateTime applyStartDateTime,
+        @NotNull LocalDateTime applyEndDateTime,
 
-        @NotNull(message = "신청 시작 시간은 필수입니다.")
-        LocalDateTime applyStartDateTime,
+        @NotNull @Min(1) Integer capacity,
 
-        @NotNull(message = "신청 종료 시간은 필수입니다.")
-        LocalDateTime applyEndDateTime,
-
-        @NotNull(message = "정원은 필수입니다.")
-        @Min(value = 1, message = "정원은 최소 1명 이상이어야 합니다.")
-        Integer capacity,
-
-        @NotNull(message = "카테고리는 필수입니다.")
-        Long categoryId
-) {
-}
+        @NotNull Long categoryId
+) {}

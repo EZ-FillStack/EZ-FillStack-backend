@@ -1,8 +1,12 @@
 package com.ezwell.backend.domain.admin;
 
-import com.ezwell.backend.domain.event.*;
-import com.ezwell.backend.domain.event.dto.*;
-import com.ezwell.backend.domain.user.*;
+import com.ezwell.backend.domain.event.EventService;
+import com.ezwell.backend.domain.event.dto.EventCreateRequest;
+import com.ezwell.backend.domain.event.dto.EventResponse;
+import com.ezwell.backend.domain.event.dto.EventUpdateRequest;
+import com.ezwell.backend.domain.user.Role;
+import com.ezwell.backend.domain.user.User;
+import com.ezwell.backend.domain.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

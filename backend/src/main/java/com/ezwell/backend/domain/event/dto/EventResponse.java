@@ -1,7 +1,6 @@
 package com.ezwell.backend.domain.event.dto;
 
 import com.ezwell.backend.domain.event.Event;
-import com.ezwell.backend.domain.event.EventStatus;
 
 import java.time.LocalDateTime;
 
@@ -13,34 +12,25 @@ public record EventResponse(
         String description,
         String address,
         String placeName,
+
         LocalDateTime eventStartDateTime,
         LocalDateTime eventEndDateTime,
-        LocalDateTime applyStartDateTime,
-        LocalDateTime applyEndDateTime,
+
         Integer capacity,
-        Integer currentParticipants,
-        Integer viewCount,
-        EventStatus status,
         Long categoryId
 ) {
-
-    public static EventResponse from(Event event) {
+    public static EventResponse from(Event e) {
         return new EventResponse(
-                event.getId(),
-                event.getTitle(),
-                event.getThumbnailUrl(),
-                event.getDescription(),
-                event.getAddress(),
-                event.getPlaceName(),
-                event.getEventStartDateTime(),
-                event.getEventEndDateTime(),
-                event.getApplyStartDateTime(),
-                event.getApplyEndDateTime(),
-                event.getCapacity(),
-                event.getCurrentParticipants(),
-                event.getViewCount(),
-                event.getStatus(),
-                event.getCategory() != null ? event.getCategory().getId() : null
+                e.getId(),
+                e.getTitle(),
+                e.getThumbnailUrl(),
+                e.getDescription(),
+                e.getAddress(),
+                e.getPlaceName(),
+                e.getEventStartDateTime(),
+                e.getEventEndDateTime(),
+                e.getCapacity(),
+                e.getCategory().getId()
         );
     }
 }

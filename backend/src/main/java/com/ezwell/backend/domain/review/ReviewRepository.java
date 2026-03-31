@@ -8,16 +8,18 @@ import java.util.List;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
+    boolean existsByUserIdAndEvent_Id(Long userId, Long eventId);
+
     @Query("""
     SELECT new com.ezwell.backend.domain.review.dto.ReviewResponse(
         r.id,
-        r.user.id,
-        r.event.id,
+        r.userId,
+        r.eventId,
         u.nickname,
         e.title,
         r.rating,
         r.content,
-        COUNT(rl.id),
+        r.recommendCount,
         CASE 
             WHEN COUNT(rl2.id) > 0 THEN true 
             ELSE false 
@@ -25,15 +27,12 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
         r.createdAt
     )
     FROM Review r
-    JOIN r.user u
-    JOIN r.event e
-    LEFT JOIN ReviewLike rl ON rl.review = r
+    JOIN User u ON r.userId = u.id
+    JOIN Event e ON r.eventId = e.id
     LEFT JOIN ReviewLike rl2 
-        ON rl2.review = r AND rl2.user.id = :userId
-    WHERE r.event.id = :eventId
-    GROUP BY r.id, r.user.id, r.event.id, u.nickname, e.title, r.rating, r.content, r.createdAt
+        ON rl2.reviewId = r.id AND rl2.userId = :userId
+    WHERE r.eventId = :eventId
+    GROUP BY r.id, r.userId, r.eventId, u.nickname, e.title, r.rating, r.content, r.recommendCount, r.createdAt
     """)
-    List<ReviewResponse> findReviewsWithLikeAndVoted(Long eventId, Long userId);
-
-    boolean existsByUser_IdAndEvent_Id(Long userId, Long eventId);
+    List<ReviewResponse> findReviews(Long eventId, Long userId);
 }

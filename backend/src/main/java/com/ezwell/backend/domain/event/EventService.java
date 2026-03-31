@@ -1,13 +1,11 @@
 package com.ezwell.backend.domain.event;
 
-import com.ezwell.backend.domain.event.dto.EventCreateRequest;
-import com.ezwell.backend.domain.event.dto.EventResponse;
-import com.ezwell.backend.domain.event.dto.EventUpdateRequest;
+import com.ezwell.backend.domain.category.Category;
+import com.ezwell.backend.domain.category.CategoryRepository;
+import com.ezwell.backend.domain.event.dto.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -15,61 +13,59 @@ import java.util.List;
 public class EventService {
 
     private final EventRepository eventRepository;
+    private final CategoryRepository categoryRepository;
 
-    public List<EventResponse> getAllEvents() {
-        return eventRepository.findAllByOrderByCreatedAtDesc()
-          .stream()
-          .filter(event -> event.getDeletedAt() == null)
-          .map(EventResponse::from)
-          .toList();
-    }
-
-    public EventResponse getEvent(Long id) {
-        Event event = findEventById(id);
-        return EventResponse.from(event);
-    }
-
+    // 생성
     @Transactional
-    public EventResponse createEvent(EventCreateRequest request) {
+    public EventResponse create(EventCreateRequest request) {
+
+        Category category = categoryRepository.findById(request.categoryId())
+                .orElseThrow(() -> new IllegalArgumentException("카테고리 없음"));
+
         Event event = new Event(
-          request.title(),
-          request.capacity(),
-          null
+                request.title(),
+                request.thumbnailUrl(),
+                request.description(),
+                request.address(),
+                request.placeName(),
+                request.eventStartDateTime(),
+                request.eventEndDateTime(),
+                request.applyStartDateTime(),
+                request.applyEndDateTime(),
+                request.capacity(),
+                category
         );
 
         return EventResponse.from(eventRepository.save(event));
     }
 
+    // 수정
     @Transactional
-    public EventResponse updateEvent(Long id, EventUpdateRequest request) {
-        Event event = findEventById(id);
+    public EventResponse update(Long id, EventUpdateRequest request) {
+
+        Event event = eventRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("이벤트 없음"));
+
+        Category category = null;
+        if (request.categoryId() != null) {
+            category = categoryRepository.findById(request.categoryId())
+                    .orElseThrow(() -> new IllegalArgumentException("카테고리 없음"));
+        }
 
         event.update(
-          request.getTitle(),
-          null, // thumbnailUrl (UpdateRequest에 없다면 기존값 유지 혹은 null)
-          request.getDescription(),
-          null, // address
-          null, // placeName
-          request.getStartAt(), // eventStartDateTime
-          request.getEndAt(),   // eventEndDateTime
-          null, // applyStartDateTime
-          null, // applyEndDateTime
-          request.getCapacity(),
-          null  // category
+                request.title(),
+                request.thumbnailUrl(),
+                request.description(),
+                request.address(),
+                request.placeName(),
+                request.eventStartDateTime(),
+                request.eventEndDateTime(),
+                request.applyStartDateTime(),
+                request.applyEndDateTime(),
+                request.capacity(),
+                category
         );
 
         return EventResponse.from(event);
-    }
-
-    @Transactional
-    public void deleteEvent(Long id) {
-        Event event = findEventById(id);
-        event.markDeleted();
-    }
-
-    private Event findEventById(Long id) {
-        return eventRepository.findById(id)
-          .filter(event -> event.getDeletedAt() == null)
-          .orElseThrow(() -> new IllegalArgumentException("EVENT_NOT_FOUND"));
     }
 }

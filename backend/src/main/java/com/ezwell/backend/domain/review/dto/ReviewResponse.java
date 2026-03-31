@@ -1,19 +1,14 @@
 package com.ezwell.backend.domain.review.dto;
 
-import com.ezwell.backend.domain.review.Review;
 import java.time.LocalDateTime;
 
 public record ReviewResponse(
-        Long id,
+        Long reviewId,
         Long userId,
         Long eventId,
-        String nickname,
-        String title,
+        String eventTitle,
         int rating,
         String content,
-        long likeCount,
-        LocalDateTime createdAt,
-        boolean voted
-
-){
-}
+        int recommendCount,
+        LocalDateTime createdAt
+) {}
