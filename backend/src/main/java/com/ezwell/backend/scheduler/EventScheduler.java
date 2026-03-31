@@ -26,23 +26,29 @@ public class EventScheduler {
 
         for (Event event : events) {
 
+            // 삭제된 이벤트 skip
             if (event.getDeletedAt() != null) {
                 continue;
             }
 
+            // 신청 시작 → OPEN
             if (event.getStatus() == EventStatus.UPCOMING) {
                 event.openIfApplicable(now);
             }
 
+            // 신청 종료 → CLOSED
             if (event.getApplyEndDateTime() != null
                     && now.isAfter(event.getApplyEndDateTime())
                     && event.getStatus() == EventStatus.OPEN) {
+
                 event.close();
             }
 
+            // 이벤트 종료 → CLOSED
             if (event.getEventEndDateTime() != null
                     && now.isAfter(event.getEventEndDateTime())
                     && event.getStatus() != EventStatus.CLOSED) {
+
                 event.close();
             }
         }

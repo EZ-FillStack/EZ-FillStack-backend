@@ -2,7 +2,10 @@ package com.ezwell.backend.domain.event;
 
 import com.ezwell.backend.domain.category.Category;
 import com.ezwell.backend.domain.category.CategoryRepository;
-import com.ezwell.backend.domain.event.dto.*;
+import com.ezwell.backend.domain.event.dto.EventCreateRequest;
+import com.ezwell.backend.domain.event.dto.EventUpdateRequest;
+import com.ezwell.backend.domain.event.dto.EventResponse;
+import com.ezwell.backend.domain.event.exception.EventNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +20,10 @@ public class EventService {
 
     // 생성
     @Transactional
-    public EventResponse create(EventCreateRequest request) {
+    public EventResponse createEvent(EventCreateRequest request) {
 
         Category category = categoryRepository.findById(request.categoryId())
-                .orElseThrow(() -> new IllegalArgumentException("카테고리 없음"));
+                .orElseThrow(() -> new IllegalArgumentException("CATEGORY_NOT_FOUND"));
 
         Event event = new Event(
                 request.title(),
@@ -36,21 +39,20 @@ public class EventService {
                 category
         );
 
-        return EventResponse.from(eventRepository.save(event));
+        eventRepository.save(event);
+
+        return EventResponse.from(event);
     }
 
     // 수정
     @Transactional
-    public EventResponse update(Long id, EventUpdateRequest request) {
+    public EventResponse updateEvent(Long eventId, EventUpdateRequest request) {
 
-        Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("이벤트 없음"));
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(EventNotFoundException::new);
 
-        Category category = null;
-        if (request.categoryId() != null) {
-            category = categoryRepository.findById(request.categoryId())
-                    .orElseThrow(() -> new IllegalArgumentException("카테고리 없음"));
-        }
+        Category category = categoryRepository.findById(request.categoryId())
+                .orElseThrow(() -> new IllegalArgumentException("CATEGORY_NOT_FOUND"));
 
         event.update(
                 request.title(),
@@ -67,5 +69,15 @@ public class EventService {
         );
 
         return EventResponse.from(event);
+    }
+
+    // 삭제 (soft delete)
+    @Transactional
+    public void deleteEvent(Long eventId) {
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(EventNotFoundException::new);
+
+        event.delete();
     }
 }

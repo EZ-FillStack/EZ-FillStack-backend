@@ -7,8 +7,10 @@ public record ReviewResponse(
         Long userId,
         Long eventId,
         String eventTitle,
+        String nickname,
         int rating,
         String content,
         int recommendCount,
+        boolean isLiked,
         LocalDateTime createdAt
 ) {}

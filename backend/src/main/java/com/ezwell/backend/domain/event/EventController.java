@@ -11,16 +11,24 @@ public class EventController {
 
     private final EventService eventService;
 
+    // 생성
     @PostMapping
     public EventResponse create(@RequestBody EventCreateRequest request) {
-        return eventService.create(request);
+        return eventService.createEvent(request);
     }
 
+    // 수정
     @PatchMapping("/{id}")
     public EventResponse update(
             @PathVariable Long id,
             @RequestBody EventUpdateRequest request
     ) {
-        return eventService.update(id, request);
+        return eventService.updateEvent(id, request);
+    }
+
+    // 삭제
+    @DeleteMapping("/{id}")
+    public void delete(@PathVariable Long id) {
+        eventService.deleteEvent(id);
     }
 }
