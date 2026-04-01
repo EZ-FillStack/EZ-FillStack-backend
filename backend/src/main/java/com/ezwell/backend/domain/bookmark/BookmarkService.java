@@ -3,6 +3,8 @@ package com.ezwell.backend.domain.bookmark;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,8 +15,9 @@ import com.ezwell.backend.domain.event.Event;
 import com.ezwell.backend.domain.event.EventRepository;
 import com.ezwell.backend.domain.event.exception.EventNotFoundException;
 import com.ezwell.backend.domain.user.User;
+import com.ezwell.backend.domain.user.UserRepository;
+import com.ezwell.backend.security.CustomUserDetails;
 
-import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -23,18 +26,19 @@ public class BookmarkService {
 
 	private final EventRepository eventRepository;
 	private final BookmarkRepository bookmarkRepository;
+    private final UserRepository userRepository;
 
-	// 유저 확인
-	private User validateUser (HttpSession session) {
-		User user = (User) session.getAttribute("user");
-		if(user == null) throw new BookmarkedException("로그인 후 이용 가능합니다.");
-		return user;
-	}
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new BookmarkedException("로그인 후 이용 가능합니다."));
+    }
 	
 	// 북마크 등록
 	@Transactional
-	public BookmarkResponse addBookmark(Long eventId, HttpSession session) {
-		User user = validateUser(session);
+	public BookmarkResponse addBookmark(Long eventId) {
+        User user = getCurrentUser();
 		
 		Event event = eventRepository.findById(eventId)
 				.orElseThrow(()-> new EventNotFoundException());
@@ -56,8 +60,8 @@ public class BookmarkService {
 	
 	// 북마크 삭제
 	@Transactional
-	public void deleteBookmark(Long eventId, HttpSession session) {
-		User user = validateUser(session);
+	public void deleteBookmark(Long eventId) {
+        User user = getCurrentUser();
 		
 		Event event = eventRepository.findById(eventId)
 				.orElseThrow(()-> new EventNotFoundException());
@@ -79,8 +83,8 @@ public class BookmarkService {
 	
 	// 마이페이지 북마크
 	@Transactional(readOnly = true)
-	public List<BookmarkListResponse> getMyBookmarks(HttpSession session){
-		User user = validateUser(session);
+	public List<BookmarkListResponse> getMyBookmarks(){
+        User user = getCurrentUser();
 		
 		return bookmarkRepository.findAllByUserOrderByCreateDateDesc(user)
 				.stream()

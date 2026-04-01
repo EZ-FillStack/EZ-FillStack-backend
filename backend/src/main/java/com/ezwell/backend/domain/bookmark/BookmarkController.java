@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ezwell.backend.domain.bookmark.dto.BookmarkListResponse;
 import com.ezwell.backend.domain.bookmark.dto.BookmarkResponse;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -23,22 +22,22 @@ public class BookmarkController {
 	
 	// 북마크
 	@PostMapping("/events/{eventId}/bookmark")
-	public ResponseEntity<BookmarkResponse> addBookmark(@PathVariable("eventId") Long eventId, HttpServletRequest request){
-		BookmarkResponse response = bookmarkService.addBookmark(eventId, request.getSession());
+	public ResponseEntity<BookmarkResponse> addBookmark(@PathVariable("eventId") Long eventId){
+		BookmarkResponse response = bookmarkService.addBookmark(eventId);
 		return ResponseEntity.ok(response);
 	}
 	
 	// 북마크 삭제
 	@DeleteMapping("/events/{eventId}/bookmark")
-	public ResponseEntity<Void> deleteBoomark(@PathVariable("eventId") Long eventId, HttpServletRequest request){
-		bookmarkService.deleteBookmark(eventId, request.getSession());
+	public ResponseEntity<Void> deleteBoomark(@PathVariable("eventId") Long eventId){
+		bookmarkService.deleteBookmark(eventId);
 		return ResponseEntity.noContent().build();
 	}
 	
 	// 마이페이지 북마크
 	@GetMapping("/me/bookmarks")
-	public ResponseEntity<List<BookmarkListResponse>> getMyBookmarks(HttpServletRequest request){
-		List<BookmarkListResponse> bookmarks = bookmarkService.getMyBookmarks(request.getSession());
+	public ResponseEntity<List<BookmarkListResponse>> getMyBookmarks(){
+		List<BookmarkListResponse> bookmarks = bookmarkService.getMyBookmarks();
 		return ResponseEntity.ok(bookmarks);
 	}
 }

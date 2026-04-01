@@ -58,8 +58,9 @@ public class Inquiry {
 	private LocalDateTime answeredAt;
 	
 	@Builder
-	public Inquiry(User user, String content) {
+	public Inquiry(User user, String title, String content) {
 		this.user = user;
+	    this.title = title;
 		this.content = content;
 		this.status = InquiryStatus.UNANSWERED;
 		this.createdAt = LocalDateTime.now();

@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.ezwell.backend.domain.application.dto.MyApplicationResponse;
 
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -24,21 +23,21 @@ public class ApplicationController {
 	
 	// 행사 신청
 	@PostMapping("/events/{eventId}/applications")
-	public ResponseEntity<String> apply(@PathVariable("eventId") Long eventId, HttpServletRequest request){
-		applicationService.applyEvent(eventId, request.getSession());
+	public ResponseEntity<String> apply(@PathVariable("eventId") Long eventId){
+		applicationService.applyEvent(eventId);
 		return ResponseEntity.ok("신청이 완료되었습니다.");
 	}
 	
 	// 신청 취소
 	@DeleteMapping("/events/applications/{eventId}")
-	public ResponseEntity<Void> cancel(@PathVariable("eventId") Long eventId, HttpServletRequest request){
-		applicationService.cancelApplication(eventId, request.getSession());
+	public ResponseEntity<Void> cancel(@PathVariable("eventId") Long eventId){
+		applicationService.cancelApplication(eventId);
 		return ResponseEntity.noContent().build();
 	}
 	
 	// 신청 목록
-	@GetMapping("/me/applications")
-	public ResponseEntity<List<MyApplicationResponse>> getMyList(HttpServletRequest request){
-		return ResponseEntity.ok(applicationService.getMyApplications(request.getSession()));
-	}
+    @GetMapping("/me/applications")
+    public ResponseEntity<List<MyApplicationResponse>> getMyList() {
+        return ResponseEntity.ok(applicationService.getMyApplications());
+    }
 }
