@@ -21,7 +21,7 @@ public class Review {
     private Long userId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id")
+    @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
     @Column(nullable = false)
@@ -33,10 +33,10 @@ public class Review {
     @Column(name = "recommend_count", nullable = false)
     private int recommendCount = 0;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", insertable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @Column(name = "updated_at", insertable = false, updatable = false)
     private LocalDateTime updatedAt;
 
     public Review(Long userId, Event event, int rating, String content) {

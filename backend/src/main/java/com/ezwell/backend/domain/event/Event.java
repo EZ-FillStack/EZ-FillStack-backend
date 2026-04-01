@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @NoArgsConstructor
+@Table(name = "events")
 public class Event {
 
     @Id
@@ -17,32 +18,51 @@ public class Event {
     private Long id;
 
     private String title;
+
+    @Column(name = "thumbnail_url") // DB 컬럼명 thumbnail_url 매핑
     private String thumbnailUrl;
+
     private String description;
     private String address;
+
+    @Column(name = "place_name") // DB 컬럼명 place_name 매핑
     private String placeName;
 
-
+    // DDL 스키마의 'datetime' 형식에 맞게 언더바 위치 조정
+    @Column(name = "event_start_datetime")
     private LocalDateTime eventStartDateTime;
+
+    @Column(name = "event_end_datetime")
     private LocalDateTime eventEndDateTime;
 
+    @Column(name = "apply_start_datetime")
     private LocalDateTime applyStartDateTime;
+
+    @Column(name = "apply_end_datetime")
     private LocalDateTime applyEndDateTime;
 
     private Integer capacity;
 
-
+    @Column(name = "current_participants") // DB 컬럼명 current_participants 매핑
     private Integer currentParticipants = 0;
+
+    @Column(name = "bookmark_count") // DB 컬럼명 bookmark_count 매핑
     private Integer bookmarkCount = 0;
 
+    @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
+
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id") // FK 컬럼명 명시
     private Category category;
 
     // 생성자
@@ -119,6 +139,7 @@ public class Event {
         if (applyEndDateTime != null) this.applyEndDateTime = applyEndDateTime;
         if (capacity != null) this.capacity = capacity;
         if (category != null) this.category = category;
+        this.updatedAt = LocalDateTime.now(); // 업데이트 시 시간 갱신
     }
 
     // =========================
