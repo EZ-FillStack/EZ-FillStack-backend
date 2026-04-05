@@ -78,7 +78,7 @@ spring:
 # cloudflare token
 cloudflare:
   r2:
-    endpoint: https://pub-abe5952db726492dbfcf21b4743e703f.r2.dev
+    endpoint: https://491744b56cb1d03f6e5eb117e658ff9e.r2.cloudflarestorage.com
     bucket-name: ego
     access-key: 047148fc458b167fa8aea246ebf75df7
     secret-key: 0df84c49dbc819277ff1ae069ccc29c39d78b24d0b7c101eea334fa377bcdf62
