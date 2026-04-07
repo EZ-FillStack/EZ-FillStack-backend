@@ -58,4 +58,10 @@ public class Application {
 	public void cancel() {
 		this.status = ApplicationStatus.CANCELED;
 	}
+	
+    // 관리자 상태 변경 (APPROVED & REJECTED)
+    public void updateStatus(ApplicationStatus status) {
+        this.status = status;
+    }
+    
 }
