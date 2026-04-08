@@ -1,7 +1,11 @@
 package com.ezwell.backend.security;
 
+import com.ezwell.backend.domain.user.Role;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -9,30 +13,57 @@ import java.security.Key;
 import java.util.Date;
 
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    // ⚠️ 실서비스에서는 환경변수로 빼기 (최소 32바이트 이상)
-    private static final String SECRET = "studyspot-secret-studyspot-secret-32bytes!";
-    private static final long ACCESS_TOKEN_MS = 1000L * 60 * 60 * 2; // 2h
+    private static final String SECRET = "ezfillstack-jwt-secret-key-32bytes-long!";
+    private static final long ACCESS_TOKEN_MS = 1000L * 60 * 60 * 2;
 
-    private final Key key;
+    private final Key key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
 
-    public JwtTokenProvider() {
-        this.key = Keys.hmacShaKeyFor(SECRET.getBytes(StandardCharsets.UTF_8));
-    }
-
-    public String createAccessToken(Long userId, String email, String role) {
+    // 토큰 생성
+    public String createAccessToken(Long userId, String email, Role role) {
         Date now = new Date();
         Date exp = new Date(now.getTime() + ACCESS_TOKEN_MS);
 
         return Jwts.builder()
                 .setSubject(email)
-                .claim("uid", userId)
-                .claim("role", role)
+                .claim("userId", userId)
+                .claim("role", role.name())
                 .setIssuedAt(now)
                 .setExpiration(exp)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    // 핵심: DB 조회 없이 인증 객체 생성
+    public Authentication getAuthentication(String token) {
+
+        Claims claims = parse(token).getBody();
+
+        Long userId = claims.get("userId", Integer.class).longValue();
+        String email = claims.getSubject();
+        String role = claims.get("role", String.class);
+
+        CustomUserDetails userDetails = new CustomUserDetails(
+                userId,
+                email,
+                Role.valueOf(role)
+        );
+
+        return new UsernamePasswordAuthenticationToken(
+                userDetails,
+                "",
+                userDetails.getAuthorities()
+        );
+    }
+
+    public String resolveToken(jakarta.servlet.http.HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 
     public Jws<Claims> parse(String token) {

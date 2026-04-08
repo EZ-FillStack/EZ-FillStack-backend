@@ -1,19 +1,12 @@
 package com.ezwell.backend.domain.event;
 
 import com.ezwell.backend.domain.category.Category;
-
-import com.ezwell.backend.domain.event.exception.CapacityExceededException;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-/**
- * 이벤트 엔티티
- * - 선착순 이벤트
- * - 상태 기반 신청 가능
- */
 @Entity
 @Getter
 @NoArgsConstructor
@@ -24,93 +17,168 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 동시에 여러 명이 신청해도 version값이 다르면 업데이트 실패
-    @Version
-    private Long version;
-
-    @Column(nullable = false)
     private String title;
 
+    @Column(name = "thumbnail_url") // DB 컬럼명 thumbnail_url 매핑
     private String thumbnailUrl;
 
-    @Column(columnDefinition = "TEXT")
     private String description;
-
     private String address;
+
+    @Column(name = "place_name") // DB 컬럼명 place_name 매핑
     private String placeName;
 
+    // DDL 스키마의 'datetime' 형식에 맞게 언더바 위치 조정
+    @Column(name = "event_start_datetime")
     private LocalDateTime eventStartDateTime;
+
+    @Column(name = "event_end_datetime")
     private LocalDateTime eventEndDateTime;
 
+    @Column(name = "apply_start_datetime")
     private LocalDateTime applyStartDateTime;
+
+    @Column(name = "apply_end_datetime")
     private LocalDateTime applyEndDateTime;
 
-    @Column(nullable = false)
     private Integer capacity;
 
-    @Column(nullable = false)
+    @Column(name = "current_participants") // DB 컬럼명 current_participants 매핑
     private Integer currentParticipants = 0;
 
-    private Integer viewCount = 0;
+    @Column(name = "bookmark_count") // DB 컬럼명 bookmark_count 매핑
+    private Integer bookmarkCount = 0;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Enumerated(EnumType.STRING)
     private EventStatus status;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
+    @JoinColumn(name = "category_id") // FK 컬럼명 명시
     private Category category;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
-    private LocalDateTime deletedAt;
-
-    public Event(String title, Integer capacity, Category category) {
+    // 생성자
+    public Event(
+            String title,
+            String thumbnailUrl,
+            String description,
+            String address,
+            String placeName,
+            LocalDateTime eventStartDateTime,
+            LocalDateTime eventEndDateTime,
+            LocalDateTime applyStartDateTime,
+            LocalDateTime applyEndDateTime,
+            Integer capacity,
+            Category category
+    ) {
         this.title = title;
+        this.thumbnailUrl = thumbnailUrl;
+        this.description = description;
+        this.address = address;
+        this.placeName = placeName;
+        this.eventStartDateTime = eventStartDateTime;
+        this.eventEndDateTime = eventEndDateTime;
+        this.applyStartDateTime = applyStartDateTime;
+        this.applyEndDateTime = applyEndDateTime;
         this.capacity = capacity;
         this.category = category;
         this.status = EventStatus.UPCOMING;
-        this.createdAt = LocalDateTime.now();
     }
 
-    // 신청 가능 여부 체크
-    public void validateApplicable(LocalDateTime now) {
+    // =========================
+    // 상태 관련
+    // =========================
 
-        if (deletedAt != null) {
-            throw new IllegalStateException("DELETED_EVENT");
-        }
-
-        if (status != EventStatus.OPEN) {
-            throw new IllegalStateException("NOT_OPEN");
-        }
-
-        if (applyStartDateTime != null && now.isBefore(applyStartDateTime)) {
-            throw new IllegalStateException("BEFORE_APPLY_START");
-        }
-
-        if (applyEndDateTime != null && now.isAfter(applyEndDateTime)) {
-            throw new IllegalStateException("AFTER_APPLY_END");
+    public void openIfApplicable(LocalDateTime now) {
+        if (this.applyStartDateTime != null && now.isAfter(this.applyStartDateTime)) {
+            this.status = EventStatus.OPEN;
         }
     }
 
+    public void close() {
+        this.status = EventStatus.CLOSED;
+    }
 
-     // 정원 초과 방지 및 정원 도달 시 자동 마감
+    public void delete() {
+        this.deletedAt = LocalDateTime.now();
+    }
+
+    // =========================
+    // 업데이트
+    // =========================
+
+    public void update(
+            String title,
+            String thumbnailUrl,
+            String description,
+            String address,
+            String placeName,
+            LocalDateTime eventStartDateTime,
+            LocalDateTime eventEndDateTime,
+            LocalDateTime applyStartDateTime,
+            LocalDateTime applyEndDateTime,
+            Integer capacity,
+            Category category
+    ) {
+        if (title != null) this.title = title;
+        if (thumbnailUrl != null) this.thumbnailUrl = thumbnailUrl;
+        if (description != null) this.description = description;
+        if (address != null) this.address = address;
+        if (placeName != null) this.placeName = placeName;
+        if (eventStartDateTime != null) this.eventStartDateTime = eventStartDateTime;
+        if (eventEndDateTime != null) this.eventEndDateTime = eventEndDateTime;
+        if (applyStartDateTime != null) this.applyStartDateTime = applyStartDateTime;
+        if (applyEndDateTime != null) this.applyEndDateTime = applyEndDateTime;
+        if (capacity != null) this.capacity = capacity;
+        if (category != null) this.category = category;
+        this.updatedAt = LocalDateTime.now(); // 업데이트 시 시간 갱신
+    }
+
+    // =========================
+    // 참가자 관리
+    // =========================
+
+    public Integer getCurrentParticipants() {
+        return currentParticipants;
+    }
+
     public void increaseParticipants() {
-        if (currentParticipants >= capacity) {
-            throw new CapacityExceededException();
+        if (this.currentParticipants == null) {
+            this.currentParticipants = 0;
         }
-
         this.currentParticipants++;
-
-        if (this.currentParticipants.equals(this.capacity)) {
-            this.status = EventStatus.CLOSED;
-        }
     }
 
-    // 신청 취소
     public void decreaseParticipants() {
-        if (currentParticipants > 0) {
-            this.currentParticipants--;
+        if (this.currentParticipants == null || this.currentParticipants == 0) {
+            return;
         }
+        this.currentParticipants--;
     }
 
+    // =========================
+    // 북마크 관리
+    // =========================
+
+    public void increaseBookmarkCount() {
+        if (this.bookmarkCount == null) {
+            this.bookmarkCount = 0;
+        }
+        this.bookmarkCount++;
+    }
+
+    public void decreaseBookmarkCount() {
+        if (this.bookmarkCount == null || this.bookmarkCount == 0) {
+            return;
+        }
+        this.bookmarkCount--;
+    }
 }

@@ -1,0 +1,138 @@
+package com.ezwell.backend.domain.application;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.ezwell.backend.domain.application.dto.AdminApplicationResponse;
+import com.ezwell.backend.domain.application.dto.ApplicationStatusRequest;
+import com.ezwell.backend.domain.application.dto.MyApplicationResponse;
+import com.ezwell.backend.domain.application.exception.ApplicationEventException;
+import com.ezwell.backend.domain.event.Event;
+import com.ezwell.backend.domain.event.EventRepository;
+import com.ezwell.backend.domain.event.exception.CapacityExceededException;
+import com.ezwell.backend.domain.event.exception.EventNotFoundException;
+import com.ezwell.backend.domain.user.User;
+import com.ezwell.backend.domain.user.UserRepository;
+import com.ezwell.backend.security.CustomUserDetails;
+
+import lombok.RequiredArgsConstructor;
+
+@Service
+@RequiredArgsConstructor
+public class ApplicationService {
+
+	private final ApplicationRepository applicationRepository;
+	private final EventRepository eventRepository;
+    private final UserRepository userRepository;
+
+    // JWT 기반 유저 추출
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+        return userRepository.findById(userDetails.getUserId())
+                .orElseThrow(() -> new ApplicationEventException("로그인 후 이용 가능합니다."));
+    }
+
+	// 이벤트 신청
+    @Transactional
+    public void applyEvent(Long eventId) {
+        User user = getCurrentUser();
+        Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException());
+		
+		// 중복 신청 체크
+		if(applicationRepository.existsByUserAndEvent(user, event)) { 
+			throw new ApplicationEventException("이미 신청한 행사입니다.");
+		}
+		
+		// 인원 제한
+		if(event.getCurrentParticipants() >= event.getCapacity()) {
+			throw new CapacityExceededException();
+		}
+		
+		// 신청 저장
+		Application application = Application.builder()
+				.user(user)
+				.event(event)
+				.build();
+		
+		applicationRepository.save(application);
+		event.increaseParticipants();
+	}
+	
+	// 이벤트 취소
+	@Transactional
+	public void cancelApplication(Long eventId) {
+		
+		Application application = applicationRepository.findById(eventId)
+				.orElseThrow(()-> new ApplicationEventException("신청 내역을 찾을 수 없습니다."));
+		
+		application.cancel();
+		application.getEvent().decreaseParticipants();
+	}
+	
+	// 신청 이벤트 목록
+    @Transactional(readOnly = true)
+	public List<MyApplicationResponse> getMyApplications(){
+        User user = getCurrentUser();
+		return applicationRepository.findAllByUserOrderByAppliedAtDesc(user)
+				.stream()
+				.map(MyApplicationResponse::from)
+				.collect(Collectors.toList());
+	}
+    
+    
+    /// 관리자
+
+    // 전체 신청 목록 조회
+    @Transactional(readOnly = true)
+    public List<AdminApplicationResponse> getAllApplications(){
+    	return applicationRepository.findAllByOrderByAppliedAtDesc()
+    			.stream()
+    			.map(AdminApplicationResponse::from)
+    			.collect(Collectors.toList());
+    }
+    
+    // 특정 신청 목록 조회 findAllByEventOrderByAppliedAtDesc
+    @Transactional(readOnly = true)
+    public List<AdminApplicationResponse> getApplicationsByEvent(Long eventId){
+    	Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException());
+    	return applicationRepository.findAllByEventOrderByAppliedAtDesc(event)
+    			.stream()
+    			.map(AdminApplicationResponse::from)
+    			.collect(Collectors.toList());
+    }
+    
+    // 신청 상태 변경
+    @Transactional
+    public void updateApplicationStatus(Long applicationId, ApplicationStatusRequest request) {
+    	Application application = applicationRepository.findById(applicationId)
+    			.orElseThrow(EventNotFoundException::new);
+    	
+    	// 상태변경 시 신청자 수 조정
+    	if(application.getStatus() == ApplicationStatus.APPROVED && request.getStatus() == ApplicationStatus.REJECTED) {
+    		application.getEvent().decreaseParticipants();
+    	}else if(application.getStatus() == ApplicationStatus.REJECTED && request.getStatus() == ApplicationStatus.APPROVED) {
+    		application.getEvent().increaseParticipants();
+    	}
+    	application.updateStatus(request.getStatus());
+    }
+    
+    // 신청 강제 취소
+    @Transactional
+    public void deleteApplication(Long applicationId) {
+    	Application application = applicationRepository.findById(applicationId)
+    			.orElseThrow(() -> new ApplicationEventException("신청 내역을 찾을 수 없습니다."));
+    	
+    	// 승인된 신청 삭제 시 신청자 수 감수
+    	if(application.getStatus() == ApplicationStatus.APPROVED) {
+    		application.getEvent().decreaseParticipants();
+    	}
+    	applicationRepository.delete(application);
+    }
+    
+}
