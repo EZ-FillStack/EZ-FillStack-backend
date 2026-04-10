@@ -10,6 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -17,6 +21,33 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final CategoryRepository categoryRepository;
+
+    // 이벤트 목록 조회
+    public List<EventResponse> getEvents(String sort, String status, Long categoryId) {
+        List<Event> events;
+
+        if (categoryId != null) {
+            events = eventRepository.findByCategoryId(categoryId);
+        } else if ("upcoming".equals(status)) {
+            events = eventRepository.findByEventStartDateTimeAfter(LocalDateTime.now());
+        } else if ("popular".equals(sort)) {
+            events = eventRepository.findAllByOrderByBookmarkCountDesc();
+        } else {
+            events = eventRepository.findAll();
+        }
+
+        return events.stream()
+                .map(EventResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    // 이벤트 상세 조회
+    public EventResponse getEvent(Long id) {
+        Event event = eventRepository.findById(id)
+                .orElseThrow(EventNotFoundException::new);
+
+        return EventResponse.from(event);
+    }
 
     // 생성
     @Transactional
@@ -71,7 +102,7 @@ public class EventService {
         return EventResponse.from(event);
     }
 
-    // 삭제 (soft delete)
+    // 삭제
     @Transactional
     public void deleteEvent(Long eventId) {
 

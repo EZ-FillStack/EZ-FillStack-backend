@@ -1,40 +1,28 @@
 package com.ezwell.backend.domain.category;
 
-import com.ezwell.backend.domain.category.dto.CategoryCreateRequest;
 import com.ezwell.backend.domain.category.dto.CategoryResponse;
-import com.ezwell.backend.domain.category.dto.CategoryUpdateRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+// 공개용 컨트롤러
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/admin/categories")
-@PreAuthorize("hasRole('ADMIN')")
+@RequestMapping("/categories")
 public class CategoryController {
 
     private final CategoryService categoryService;
 
+    // 카테고리 전체 목록 공개 조회
     @GetMapping
-    public List<CategoryResponse> getAll() {
+    public List<CategoryResponse> getCategories() {
         return categoryService.getAllCategories();
     }
 
-    @PostMapping
-    public CategoryResponse create(@RequestBody CategoryCreateRequest request) {
-        return categoryService.create(request);
-    }
-
-    @PutMapping("/{id}")
-    public CategoryResponse update(@PathVariable Long id,
-                                   @RequestBody CategoryUpdateRequest request) {
-        return categoryService.update(id, request);
-    }
-
-    @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
-        categoryService.delete(id);
+    // 카테고리 상세 정보 공개 조회
+    @GetMapping("/{id}")
+    public CategoryResponse getCategory(@PathVariable Long id) {
+        return categoryService.getCategory(id);
     }
 }

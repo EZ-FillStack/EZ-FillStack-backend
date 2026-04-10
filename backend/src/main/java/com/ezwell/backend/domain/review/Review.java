@@ -68,4 +68,10 @@ public class Review {
             this.recommendCount--;
         }
     }
+
+    // 리뷰 내용과 별점 수정
+    public void update(int rating, String content) {
+        this.rating = rating;
+        this.content = content;
+    }
 }
