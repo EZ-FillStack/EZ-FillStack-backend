@@ -8,6 +8,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.ezwell.backend.domain.application.dto.AdminApplicationResponse;
+import com.ezwell.backend.domain.application.dto.ApplicationStatusRequest;
 import com.ezwell.backend.domain.application.dto.MyApplicationResponse;
 import com.ezwell.backend.domain.application.exception.ApplicationEventException;
 import com.ezwell.backend.domain.event.Event;
@@ -82,4 +84,55 @@ public class ApplicationService {
 				.map(MyApplicationResponse::from)
 				.collect(Collectors.toList());
 	}
+    
+    
+    /// 관리자
+
+    // 전체 신청 목록 조회
+    @Transactional(readOnly = true)
+    public List<AdminApplicationResponse> getAllApplications(){
+    	return applicationRepository.findAllByOrderByAppliedAtDesc()
+    			.stream()
+    			.map(AdminApplicationResponse::from)
+    			.collect(Collectors.toList());
+    }
+    
+    // 특정 신청 목록 조회 findAllByEventOrderByAppliedAtDesc
+    @Transactional(readOnly = true)
+    public List<AdminApplicationResponse> getApplicationsByEvent(Long eventId){
+    	Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException());
+    	return applicationRepository.findAllByEventOrderByAppliedAtDesc(event)
+    			.stream()
+    			.map(AdminApplicationResponse::from)
+    			.collect(Collectors.toList());
+    }
+    
+    // 신청 상태 변경
+    @Transactional
+    public void updateApplicationStatus(Long applicationId, ApplicationStatusRequest request) {
+    	Application application = applicationRepository.findById(applicationId)
+    			.orElseThrow(EventNotFoundException::new);
+    	
+    	// 상태변경 시 신청자 수 조정
+    	if(application.getStatus() == ApplicationStatus.APPROVED && request.getStatus() == ApplicationStatus.REJECTED) {
+    		application.getEvent().decreaseParticipants();
+    	}else if(application.getStatus() == ApplicationStatus.REJECTED && request.getStatus() == ApplicationStatus.APPROVED) {
+    		application.getEvent().increaseParticipants();
+    	}
+    	application.updateStatus(request.getStatus());
+    }
+    
+    // 신청 강제 취소
+    @Transactional
+    public void deleteApplication(Long applicationId) {
+    	Application application = applicationRepository.findById(applicationId)
+    			.orElseThrow(() -> new ApplicationEventException("신청 내역을 찾을 수 없습니다."));
+    	
+    	// 승인된 신청 삭제 시 신청자 수 감수
+    	if(application.getStatus() == ApplicationStatus.APPROVED) {
+    		application.getEvent().decreaseParticipants();
+    	}
+    	applicationRepository.delete(application);
+    }
+    
 }

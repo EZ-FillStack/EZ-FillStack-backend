@@ -16,7 +16,4 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 	// 신청 목록 조회
 	@EntityGraph(attributePaths = {"event"})
 	List<Application> findAllByUserOrderByAppliedAtDesc(User user);
-
-	// eventId로 조회
-		List<Application> findByEventId(Long eventId);
 }

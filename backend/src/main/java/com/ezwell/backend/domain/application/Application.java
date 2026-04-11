@@ -58,9 +58,4 @@ public class Application {
 	public void cancel() {
 		this.status = ApplicationStatus.CANCELED;
 	}
-
-	// 상태 수정
-	public void updateStatus(ApplicationStatus status) {
-		this.status = status;
-	}
 }
