@@ -13,11 +13,12 @@ import java.time.LocalDateTime;
 @Table(name = "users")
 public class User {
 
-    @Id
+    @Getter
+		@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+	  @Column(nullable = false, unique = true, length = 50)
     private String username;
 
     private String password; // 소셜 유저는 null 허용을 위해 nullable=false 제거
@@ -53,15 +54,19 @@ public class User {
 
     @Builder
     public User(String username, String password, String nickname, String email, String phone,
-                String provider, String providerId, Role role) {
-        this.username = username;
+                String provider, String providerId, Role role, String status, String profileImageUrl) {
+        this.username = (username != null) ? username : email;
         this.password = password;
-        this.nickname = nickname;
+        this.nickname = (nickname != null) ? nickname : email.split("@")[0];
         this.email = email;
         this.phone = phone;
         this.provider = (provider != null) ? provider : "local";
         this.providerId = providerId;
         this.role = (role != null) ? role : Role.ROLE_USER;
+        this.status = (status != null) ? status : "ACTIVE";
+        this.profileImageUrl = profileImageUrl;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     // 비즈니스 로직 메서드들
@@ -99,6 +104,7 @@ public class User {
 
 	public void updateProfileImage(String newImageUrl) {
 		this.profileImageUrl = newImageUrl;
+    this.updatedAt = LocalDateTime.now();
 	}
     
 }

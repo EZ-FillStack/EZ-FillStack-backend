@@ -58,4 +58,13 @@ public class UserController {
  
         return ResponseEntity.ok(Map.of("profileImageUrl", imageUrl));
     }
+
+    // 회원 탈퇴 (Soft Delete)
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> withdraw(
+      @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        userService.withdraw(userDetails.getUserId());
+        return ResponseEntity.noContent().build();
+    }
 }

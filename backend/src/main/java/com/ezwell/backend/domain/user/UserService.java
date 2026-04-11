@@ -60,6 +60,15 @@ public class UserService {
         user.changePassword(passwordEncoder.encode(request.newPassword()));
     }
 
+    // 회원 탈퇴
+    public void withdraw(Long userId) {
+        User user = userRepository.findById(userId)
+          .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
+
+        user.softDelete();
+        log.info("[회원 탈퇴 완료] userId: {}", userId);
+    }
+
     // 프로필 이미지 업로드
     public String updateProfileImage(Long userId, MultipartFile file) {  // 수정: 오타 제거
         User user = userRepository.findById(userId)
