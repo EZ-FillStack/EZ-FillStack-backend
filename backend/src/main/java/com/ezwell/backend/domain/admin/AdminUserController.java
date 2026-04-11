@@ -18,6 +18,7 @@ public class AdminUserController {
     private final UserRepository userRepository;
     private final AdminService adminService;
 
+    //전체 유저 조회
     @GetMapping
     public List<UserResponse> getAllUsers() {
         return userRepository.findAll()
@@ -26,9 +27,16 @@ public class AdminUserController {
                 .toList();
     }
 
+    //유저 권한 변경
     @PatchMapping("/{id}/role")
     public void changeRole(@PathVariable Long id,
                            @RequestBody UserRoleUpdateRequest request) {
         adminService.changeUserRole(id, request.role());
+    }
+
+    // 회원 삭제
+    @DeleteMapping("/{id}")
+    public void deleteUser(@PathVariable Long id) {
+        adminService.deleteUser(id);
     }
 }

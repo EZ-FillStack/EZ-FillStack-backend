@@ -7,11 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.Collections;
 import java.util.Map;
 
 @Service
@@ -47,14 +45,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 			picture = (String) kakaoProfile.get("thumbnail_image_url");
 			providerId = String.valueOf(attributes.get("id")); // 카카오는 id가 Long 타입이라 문자열 변환 필요
 		} else {
-			// 구글 등 기존 로직
 			email = (String) attributes.get("email");
 			name = (String) attributes.get("name");
 			picture = (String) attributes.get("picture");
-			providerId = (String) attributes.get("sub");
+			providerId = String.valueOf(attributes.get("sub"));
 		}
 
-		// DB에 있으면 업데이트, 없으면 신규 저장 (인성 님이 만든 User 엔티티 활용)
+		// DB에 있으면 업데이트, 없으면 신규 저장
 		User user = userRepository.findByEmail(email)
 			.map(entity -> {
 				entity.updateProfile(name, null, picture);
@@ -71,13 +68,11 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
 		userRepository.save(user);
 
-		String userNameAttributeName = userRequest.getClientRegistration()
-			.getProviderDetails().getUserInfoEndpoint().getUserNameAttributeName();
-
-		return new DefaultOAuth2User(
-			Collections.singleton(() -> user.getRole().name()),
-			attributes,
-			userNameAttributeName
+		return new CustomUserDetails(
+				user.getId(),
+				user.getEmail(),
+				user.getRole(),
+				attributes
 		);
 	}
 }
