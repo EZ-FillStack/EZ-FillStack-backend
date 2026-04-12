@@ -53,15 +53,18 @@ public class User {
 
     @Builder
     public User(String username, String password, String nickname, String email, String phone,
-                String provider, String providerId, Role role) {
-        this.username = username;
+                String provider, String providerId, Role role, String status, String profileImageUrl) {
+        this.username = (username != null) ? username : email; // username 없으면 email로 대체
         this.password = password;
-        this.nickname = nickname;
+        this.nickname = (nickname != null) ? nickname : email.split("@")[0]; // nickname 없으면 email 아이디로 대체
         this.email = email;
-        this.phone = phone;
+        this.phone = phone; // null 허용
         this.provider = (provider != null) ? provider : "local";
-        this.providerId = providerId;
         this.role = (role != null) ? role : Role.ROLE_USER;
+        this.status = (status != null) ? status : "ACTIVE";
+        this.profileImageUrl = profileImageUrl;
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     // 비즈니스 로직 메서드들
