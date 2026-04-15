@@ -8,9 +8,9 @@ import com.ezwell.backend.domain.event.dto.EventUpdateRequest;
 import com.ezwell.backend.domain.user.Role;
 import com.ezwell.backend.domain.user.User;
 import com.ezwell.backend.domain.user.UserRepository;
+import com.ezwell.backend.domain.admin.dto.ApplicationStatusRequest;
 import com.ezwell.backend.domain.application.Application;
 import com.ezwell.backend.domain.application.ApplicationRepository;
-import com.ezwell.backend.domain.application.ApplicationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -49,6 +49,7 @@ public class AdminService {
                 .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
         userRepository.delete(user);
     }
+    
     // 신청 전체 조회
     @Transactional(readOnly = true)
     public List<ApplicationResponse> getAllApplications() {
@@ -66,12 +67,11 @@ public class AdminService {
     }
 
     //  신청 상태 변경
-    public void updateApplicationStatus(Long applicationId, String status) {
+    public void updateApplicationStatus(Long applicationId, ApplicationStatusRequest request) {
         Application application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new IllegalArgumentException("APPLICATION_NOT_FOUND"));
 
-        // Enum 타입(ApplicationStatus)에 맞게 변환하여 업데이트
-        application.updateStatus(ApplicationStatus.valueOf(status.toUpperCase()));
+        application.updateStatus(request.getStatus());
     }
 
     // 신청 강제 삭제

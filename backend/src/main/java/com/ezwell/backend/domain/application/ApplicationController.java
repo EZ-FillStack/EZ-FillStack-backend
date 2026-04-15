@@ -39,5 +39,5 @@ public class ApplicationController {
     @GetMapping("/me/applications")
     public ResponseEntity<List<MyApplicationResponse>> getMyList() {
         return ResponseEntity.ok(applicationService.getMyApplications());
-    }
+    }    
 }
