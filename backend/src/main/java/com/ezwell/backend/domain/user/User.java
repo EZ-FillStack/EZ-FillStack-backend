@@ -17,14 +17,14 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 50)
+    @Column(unique = true, length = 50)
     private String username;
 
     private String password; // 소셜 유저는 null 허용을 위해 nullable=false 제거
 
     private String resetToken;  // 비밀번호 재설정용 토큰
 
-    @Column(nullable = false)
+    @Column(length = 50)
     private String nickname;
 
     @Column(nullable = false, unique = true, length = 100)
@@ -32,7 +32,6 @@ public class User {
 
     private String phone;
 
-    @Column(nullable = false)
     private String provider = "local"; // 기본값 local
 
     private String providerId;
@@ -104,6 +103,7 @@ public class User {
 
 	public void updateProfileImage(String newImageUrl) {
 		this.profileImageUrl = newImageUrl;
+    this.updatedAt = LocalDateTime.now();
 	}
     
 }
