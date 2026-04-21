@@ -54,12 +54,14 @@ public class User {
     @Builder
     public User(String username, String password, String nickname, String email, String phone,
                 String provider, String providerId, Role role, String status, String profileImageUrl) {
-        this.username = (username != null) ? username : email; // username 없으면 email로 대체
+        this.username = (username != null) ? username : email;
         this.password = password;
-        this.nickname = (nickname != null) ? nickname : email.split("@")[0]; // nickname 없으면 email 아이디로 대체
+        // 닉네임 미입력 시 이메일 앞자리 추출
+        this.nickname = (nickname != null) ? nickname : email.split("@")[0];
         this.email = email;
-        this.phone = phone; // null 허용
+        this.phone = phone;
         this.provider = (provider != null) ? provider : "local";
+        this.providerId = providerId;
         this.role = (role != null) ? role : Role.ROLE_USER;
         this.status = (status != null) ? status : "ACTIVE";
         this.profileImageUrl = profileImageUrl;
