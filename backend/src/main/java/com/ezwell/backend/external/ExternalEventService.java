@@ -9,8 +9,13 @@ public class ExternalEventService {
 
     private final KopisApiClient kopisApiClient;
 
-    // 외부 공연 데이터 조회
-    public String getPerformances() {
-        return kopisApiClient.getPerformances();
+    // 1. 공연 목록 조회
+    public String getPerformances(String stdate, String eddate, int cpage, int rows) {
+        return kopisApiClient.getPerformances(stdate, eddate, cpage, rows);
+    }
+
+    // 2. 특정 공연 상세 데이터 조회
+    public String getEventDetail(String eventId) {
+        return kopisApiClient.getPerformanceDetail(eventId);
     }
 }

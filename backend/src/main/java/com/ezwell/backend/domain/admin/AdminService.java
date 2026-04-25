@@ -11,6 +11,8 @@ import com.ezwell.backend.domain.user.UserRepository;
 import com.ezwell.backend.domain.admin.dto.ApplicationStatusRequest;
 import com.ezwell.backend.domain.application.Application;
 import com.ezwell.backend.domain.application.ApplicationRepository;
+
+import com.ezwell.backend.external.ExternalEventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,7 @@ public class AdminService {
     private final EventService eventService;
     private final UserRepository userRepository;
     private final ApplicationRepository applicationRepository;
+    private final ExternalEventService externalEventService;
 
     public EventResponse createEvent(EventCreateRequest request) {
         return eventService.createEvent(request);
@@ -49,7 +52,7 @@ public class AdminService {
                 .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
         userRepository.delete(user);
     }
-    
+
     // 신청 전체 조회
     @Transactional(readOnly = true)
     public List<ApplicationResponse> getAllApplications() {
@@ -79,5 +82,11 @@ public class AdminService {
         Application application = applicationRepository.findById(applicationId)
                 .orElseThrow(() -> new IllegalArgumentException("APPLICATION_NOT_FOUND"));
         applicationRepository.delete(application);
+    }
+
+    public void syncKopisEvents(String stdate, String eddate, int cpage, int rows) {
+        String xmlData = externalEventService.getPerformances(stdate, eddate, cpage, rows);
+
+        System.out.println("동기화(Sync) 호출 성공! 받아온 데이터:\n" + xmlData);
     }
 }
