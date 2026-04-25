@@ -1,32 +1,41 @@
 package com.ezwell.backend.external;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 @Component
 public class KopisApiClient {
 
-    // 공연 목록 조회 API 호출 메서드
-    public String getPerformances() {
+    @Value("${kopis.api.key}")
+    private String serviceKey;
 
+    @Value("${kopis.api.url}")
+    private String baseUrl;
 
-        // service = 발급받은 인증키
-        // stdate / eddate = 조회 기간
-        // cpage = 페이지
-        // rows = 가져올 개수
-        String url =
-                "http://www.kopis.or.kr/openApi/restful/pblprfr"
-                        + "?service=86b2cab5099c41b6b0a208dab4131f62"
-                        + "&stdate=20260101"
-                        + "&eddate=20261231"
-                        + "&cpage=1"
-                        + "&rows=10";
+    private final RestTemplate restTemplate = new RestTemplate();
 
-        // Spring에서 제공하는 HTTP 요청 객체
-        RestTemplate restTemplate = new RestTemplate();
+    // 1. KOPIS 공연 목록 조회
+    public String getPerformances(String stdate, String eddate, int cpage, int rows) {
 
+        String url = UriComponentsBuilder.fromHttpUrl(baseUrl)
+                .queryParam("service", serviceKey)
+                .queryParam("stdate", stdate)
+                .queryParam("eddate", eddate)
+                .queryParam("cpage", cpage)
+                .queryParam("rows", rows)
+                .toUriString();
 
-        // GET 요청 보내고 결과(XML)를 문자열로 반환
+        return restTemplate.getForObject(url, String.class);
+    }
+
+    // 2. KOPIS 특정 공연 상세 조회
+    public String getPerformanceDetail(String eventId) {
+        String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/" + eventId)
+                .queryParam("service", serviceKey)
+                .toUriString();
+
         return restTemplate.getForObject(url, String.class);
     }
 }
