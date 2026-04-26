@@ -13,6 +13,7 @@ import com.ezwell.backend.domain.application.Application;
 import com.ezwell.backend.domain.application.ApplicationRepository;
 
 import com.ezwell.backend.external.ExternalEventService;
+import com.ezwell.backend.external.dto.KopisEventDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,8 +86,9 @@ public class AdminService {
     }
 
     public void syncKopisEvents(String stdate, String eddate, int cpage, int rows) {
-        String xmlData = externalEventService.getPerformances(stdate, eddate, cpage, rows);
+        List<KopisEventDto> eventList = externalEventService.getPerformances(stdate, eddate, cpage, rows);
 
-        System.out.println("동기화(Sync) 호출 성공! 받아온 데이터:\n" + xmlData);
+        System.out.println("동기화(Sync) 호출 성공! 받아온 공연 개수: " + eventList.size());
+
     }
 }
