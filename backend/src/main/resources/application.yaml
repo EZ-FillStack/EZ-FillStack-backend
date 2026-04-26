@@ -78,6 +78,7 @@ spring:
 # cloudflare token
 cloudflare:
   r2:
+    public-url: https://pub-abe5952db726492dbfcf21b4743e703f.r2.dev
     endpoint: https://491744b56cb1d03f6e5eb117e658ff9e.r2.cloudflarestorage.com
     bucket-name: ego
     access-key: ${R2_ACCESS_KEY}
