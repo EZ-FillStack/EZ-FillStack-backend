@@ -40,8 +40,8 @@ public class ExternalEventService {
 
         try {
             KopisDetailResponse response = xmlMapper.readValue(xmlData, KopisDetailResponse.class);
-            if (response != null && response.getDetail() != null) {
-                return response.getDetail();
+            if (response != null && response.getDb() != null) {
+                return response.getDb();
             }
         } catch (Exception e) {
             System.err.println("KOPIS 상세 XML 파싱 에러: " + e.getMessage());

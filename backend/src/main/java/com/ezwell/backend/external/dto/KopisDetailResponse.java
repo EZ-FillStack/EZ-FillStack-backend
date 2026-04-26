@@ -13,5 +13,5 @@ import lombok.Setter;
 public class KopisDetailResponse {
 
     @JacksonXmlProperty(localName = "db")
-    private KopisEventDetailDto detail;
+    private KopisEventDetailDto db;
 }
