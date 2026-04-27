@@ -14,6 +14,7 @@ import com.ezwell.backend.domain.event.Event;
 import com.ezwell.backend.domain.event.EventRepository;
 import com.ezwell.backend.domain.event.exception.CapacityExceededException;
 import com.ezwell.backend.domain.event.exception.EventNotFoundException;
+import com.ezwell.backend.domain.review.ReviewRepository;
 import com.ezwell.backend.domain.user.User;
 import com.ezwell.backend.domain.user.UserRepository;
 import com.ezwell.backend.security.CustomUserDetails;
@@ -27,6 +28,7 @@ public class ApplicationService {
 	private final ApplicationRepository applicationRepository;
 	private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final ReviewRepository reviewRepository;
 
     // JWT 기반 유저 추출
     private User getCurrentUser() {
@@ -77,10 +79,19 @@ public class ApplicationService {
     @Transactional(readOnly = true)
 	public List<MyApplicationResponse> getMyApplications(){
         User user = getCurrentUser();
-		return applicationRepository.findAllByUserOrderByAppliedAtDesc(user)
-				.stream()
-				.map(MyApplicationResponse::from)
-				.collect(Collectors.toList());
-	}
+        Long userId = user.getId();
+        
+        List<Application> applications = applicationRepository.findAllByUserOrderByAppliedAtDesc(user);
+ 
+        return applications.stream()
+                .map(application -> {
+                    boolean hasReview = reviewRepository.existsByUserIdAndEvent_Id(
+                            userId,
+                            application.getEvent().getId()
+                    );
+                    return MyApplicationResponse.of(application, hasReview);
+                })
+                .collect(Collectors.toList());
+    }
     
 }
