@@ -65,11 +65,4 @@ public class KopisEventDetailDto {
     @JacksonXmlElementWrapper(localName = "styurls")
     @JacksonXmlProperty(localName = "styurl")
     private List<String> detailImageUrls;
-
-    @JacksonXmlProperty(localName = "mt10id")
-    private String facilityId; // KOPIS 공연시설 ID
-
-    private String address;    // 상세 주소
-    private String latitude;   // 위도
-    private String longitude;  // 경도
 }
