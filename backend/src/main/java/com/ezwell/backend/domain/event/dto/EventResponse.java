@@ -17,6 +17,9 @@ public record EventResponse(
         LocalDateTime eventStartDateTime,
         LocalDateTime eventEndDateTime,
 
+        LocalDateTime applyStartDateTime,
+        LocalDateTime applyEndDateTime,
+
         Integer capacity,
         Integer currentParticipants,
         Integer bookmarkCount,
@@ -34,6 +37,8 @@ public record EventResponse(
                 e.getPlaceName(),
                 e.getEventStartDateTime(),
                 e.getEventEndDateTime(),
+                e.getApplyStartDateTime(),
+                e.getApplyEndDateTime(),
                 e.getCapacity(),
                 e.getCurrentParticipants(),
                 e.getBookmarkCount(),
