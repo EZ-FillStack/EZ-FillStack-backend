@@ -1,9 +1,12 @@
 package com.ezwell.backend.external;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class KopisApiClient {
@@ -14,11 +17,16 @@ public class KopisApiClient {
     @Value("${kopis.api.url}")
     private String baseUrl;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
+
+    public KopisApiClient() {
+        this.restTemplate = new RestTemplate();
+        this.restTemplate.getMessageConverters()
+                .add(0, new StringHttpMessageConverter(StandardCharsets.UTF_8));
+    }
 
     // 1. KOPIS 공연 목록 조회
     public String getPerformances(String stdate, String eddate, int cpage, int rows) {
-
         String url = UriComponentsBuilder.fromHttpUrl(baseUrl)
                 .queryParam("service", serviceKey)
                 .queryParam("stdate", stdate)
