@@ -1,9 +1,6 @@
 package com.ezwell.backend.external;
 
-import com.ezwell.backend.external.dto.KopisDetailResponse;
-import com.ezwell.backend.external.dto.KopisEventDetailDto;
-import com.ezwell.backend.external.dto.KopisEventDto;
-import com.ezwell.backend.external.dto.KopisResponse;
+import com.ezwell.backend.external.dto.*;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -36,15 +33,31 @@ public class ExternalEventService {
 
     // 2. 상세 조회
     public KopisEventDetailDto getEventDetail(String eventId) {
+        // 공연 상세 정보 호출
         String xmlData = kopisApiClient.getPerformanceDetail(eventId);
 
         try {
             KopisDetailResponse response = xmlMapper.readValue(xmlData, KopisDetailResponse.class);
+
             if (response != null && response.getDb() != null) {
-                return response.getDb();
+                KopisEventDetailDto eventDetail = response.getDb();
+
+                if (eventDetail.getFacilityId() != null) {
+                    String facilityXml = kopisApiClient.getFacilityDetail(eventDetail.getFacilityId());
+                    KopisFacilityResponse facilityResponse = xmlMapper.readValue(facilityXml, KopisFacilityResponse.class);
+
+                    if (facilityResponse != null && facilityResponse.getDb() != null) {
+                        eventDetail.setAddress(facilityResponse.getDb().getAddress());
+                        eventDetail.setLatitude(facilityResponse.getDb().getLatitude());
+                        eventDetail.setLongitude(facilityResponse.getDb().getLongitude());
+                    }
+                }
+
+                return eventDetail;
             }
         } catch (Exception e) {
-            System.err.println("KOPIS 상세 XML 파싱 에러: " + e.getMessage());
+            System.err.println("KOPIS 상세/시설 XML 파싱 에러: " + e.getMessage());
+            e.printStackTrace();
         }
 
         return null;

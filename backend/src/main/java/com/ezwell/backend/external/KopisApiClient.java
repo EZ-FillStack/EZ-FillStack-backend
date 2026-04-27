@@ -46,4 +46,15 @@ public class KopisApiClient {
 
         return restTemplate.getForObject(url, String.class);
     }
+
+    // 3. KOPIS 공연 시설 상세 조회
+    public String getFacilityDetail(String facilityId) {
+        String facilityBaseUrl = "http://www.kopis.or.kr/openApi/restful/prfplc";
+
+        String url = UriComponentsBuilder.fromHttpUrl(facilityBaseUrl + "/" + facilityId)
+                .queryParam("service", serviceKey)
+                .toUriString();
+
+        return restTemplate.getForObject(url, String.class);
+    }
 }
