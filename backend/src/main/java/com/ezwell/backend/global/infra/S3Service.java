@@ -26,6 +26,10 @@ public class S3Service {
     @Value("${cloudflare.r2.endpoint}")
     private String endpoint;
     
+    // 조회용 퍼블릭 URL (프론트 반환URL)
+    @Value("${cloudflare.r2.public-url}")
+    private String publicUrl;
+    
         // r2 버킷에 파일 업로드 -> URL 반환
         public String uploadFile(MultipartFile file, String directory) {
             if (file.isEmpty()) {
@@ -46,7 +50,8 @@ public class S3Service {
             s3Client.putObject(putObjectRequest,
                     RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
  
-            return String.format("%s/%s/%s", endpoint, bucketName, fileName);
+            return String.format("%s/%s", publicUrl, fileName);
+            
         } catch (IOException e) {
             throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
         }
