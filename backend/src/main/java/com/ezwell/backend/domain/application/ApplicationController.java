@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ezwell.backend.domain.application.dto.MyApplicationResponse;
@@ -15,7 +14,6 @@ import com.ezwell.backend.domain.application.dto.MyApplicationResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping
 @RequiredArgsConstructor
 public class ApplicationController {
 	
@@ -29,9 +27,9 @@ public class ApplicationController {
 	}
 	
 	// 신청 취소
-	@DeleteMapping("/events/applications/{eventId}")
-	public ResponseEntity<Void> cancel(@PathVariable("eventId") Long eventId){
-		applicationService.cancelApplication(eventId);
+	@DeleteMapping("/events/applications/{applicationId}")
+	public ResponseEntity<Void> cancel(@PathVariable("applicationId") Long applicationId){
+		applicationService.cancelApplication(applicationId);
 		return ResponseEntity.noContent().build();
 	}
 	

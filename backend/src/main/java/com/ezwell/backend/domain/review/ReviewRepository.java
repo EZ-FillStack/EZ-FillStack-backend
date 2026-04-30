@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Set;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
 
@@ -64,4 +65,9 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     ORDER BY r.recommendCount DESC
     """)
     List<ReviewResponse> findBestReviews(@Param("userId") Long userId);
+    
+    // 신청한 이벤트 중 리뷰 작성 여부 확인 (N+1 방지용 일괄 조회)
+    @Query("SELECT r.eventId FROM Review r WHERE r.userId = :userId AND r.event.id IN :eventIds")
+    Set<Long> findEventIdsByUserIdAndEventIdIn(@Param("userId") Long userId, @Param("eventIds") List<Long> eventIds);
+
 }
