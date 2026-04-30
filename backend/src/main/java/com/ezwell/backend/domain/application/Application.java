@@ -51,7 +51,7 @@ public class Application {
 	public Application(User user, Event event) {
 		this.user = user;
 		this.event = event;
-		this.status = ApplicationStatus.APPROVED;
+		this.status = ApplicationStatus.PENDING;
 		this.appliedAt = LocalDateTime.now();
 	}
 	
