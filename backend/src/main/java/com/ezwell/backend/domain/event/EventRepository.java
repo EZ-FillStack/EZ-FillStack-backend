@@ -29,4 +29,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     // 인기순 이벤트 조회
     List<Event> findAllByOrderByBookmarkCountDesc();
+    
+    // 종료된 이벤트 조회
+    List<Event> findByEventEndDatetimeBefore(LocalDateTime now);
 }

@@ -13,7 +13,6 @@ import com.ezwell.backend.domain.application.dto.MyApplicationResponse;
 import com.ezwell.backend.domain.application.exception.ApplicationEventException;
 import com.ezwell.backend.domain.event.Event;
 import com.ezwell.backend.domain.event.EventRepository;
-import com.ezwell.backend.domain.event.exception.CapacityExceededException;
 import com.ezwell.backend.domain.event.exception.EventNotFoundException;
 import com.ezwell.backend.domain.review.ReviewRepository;
 import com.ezwell.backend.domain.user.User;
@@ -30,6 +29,7 @@ public class ApplicationService {
 	private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final ReviewRepository reviewRepository;
+    Application application;
 
     // JWT 기반 유저 추출
     private User getCurrentUser() {
@@ -54,7 +54,13 @@ public class ApplicationService {
         	
 		// 인원 제한
 		if(event.getCurrentParticipants() >= event.getCapacity()) {
-			throw new CapacityExceededException();
+			application = Application.builder()
+					.user(user)
+					.event(event)
+					.status(ApplicationStatus.REJECTED)
+					.build();
+			applicationRepository.save(application);
+			return;
 		}
 		
 		// 신청 저장
