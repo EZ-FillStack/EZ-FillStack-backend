@@ -4,6 +4,7 @@ import com.ezwell.backend.domain.category.Category;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @Table(name = "events")
+@SQLRestriction("deleted_at IS NULL")
 public class Event {
 
     @Id

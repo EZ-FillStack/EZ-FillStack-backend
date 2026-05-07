@@ -13,12 +13,8 @@ import java.util.List;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-    // 기본 조회
-    Optional<Event> findById(Long id);
-
-    // 동시성 제어
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select e from Event e where e.id = :id")
+    @Query("select e from Event e where e.id = :id and e.deletedAt is null")
     Optional<Event> findByIdWithLock(@Param("id") Long id);
 
     // 예정된 이벤트 조회
@@ -29,7 +25,7 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     // 인기순 이벤트 조회
     List<Event> findAllByOrderByBookmarkCountDesc();
-    
+
     // 종료된 이벤트 조회
-    List<Event> findByEventEndDatetimeBefore(LocalDateTime now);
+    List<Event> findByEventEndDateTimeBefore(LocalDateTime now);
 }

@@ -67,7 +67,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     List<ReviewResponse> findBestReviews(@Param("userId") Long userId);
     
     // 신청한 이벤트 중 리뷰 작성 여부 확인 (N+1 방지용 일괄 조회)
-    @Query("SELECT r.eventId FROM Review r WHERE r.userId = :userId AND r.event.id IN :eventIds")
+    @Query("SELECT r.event.id FROM Review r WHERE r.userId = :userId AND r.event.id IN :eventIds")
     Set<Long> findEventIdsByUserIdAndEventIdIn(@Param("userId") Long userId, @Param("eventIds") List<Long> eventIds);
 
 }
