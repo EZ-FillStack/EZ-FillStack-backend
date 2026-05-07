@@ -37,6 +37,8 @@ public class EventService {
         }
 
         return events.stream()
+                // deletedAt이 null인  데이터만 필터링
+                .filter(event -> event.getDeletedAt() == null)
                 .map(EventResponse::from)
                 .collect(Collectors.toList());
     }
@@ -45,6 +47,11 @@ public class EventService {
     public EventResponse getEvent(Long id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(EventNotFoundException::new);
+
+        //  이미 삭제된 이벤트의 ID로 접근하면 없는 이벤트로 처리
+        if (event.getDeletedAt() != null) {
+            throw new EventNotFoundException();
+        }
 
         return EventResponse.from(event);
     }
@@ -82,6 +89,11 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(EventNotFoundException::new);
 
+        // 삭제된 이벤트는 수정할 수 없도록 차단
+        if (event.getDeletedAt() != null) {
+            throw new EventNotFoundException();
+        }
+
         Category category = categoryRepository.findById(request.categoryId())
                 .orElseThrow(() -> new IllegalArgumentException("CATEGORY_NOT_FOUND"));
 
@@ -108,6 +120,11 @@ public class EventService {
 
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(EventNotFoundException::new);
+
+        // 이미 삭제된 이벤트를 또 삭제 요청할 경우의 방지 로직
+        if (event.getDeletedAt() != null) {
+            throw new EventNotFoundException();
+        }
 
         event.delete();
     }

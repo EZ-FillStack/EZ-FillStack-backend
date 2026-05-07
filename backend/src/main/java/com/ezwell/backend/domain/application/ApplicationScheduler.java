@@ -26,7 +26,7 @@ public class ApplicationScheduler {
 		LocalDateTime now = LocalDateTime.now();
 		
 		// 종료일이 지난 이벤트 조회
-		List<Event> finishedEvents = eventRepository.findByEventEndDatetimeBefore(now);
+		List<Event> finishedEvents = eventRepository.findByEventEndDateTimeBefore(now);
 		
 		for(Event event: finishedEvents) {
 			List<Application> application = appliationRepository.findByEventAndStatus(event, ApplicationStatus.APPROVED);
