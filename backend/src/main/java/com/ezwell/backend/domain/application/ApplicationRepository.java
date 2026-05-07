@@ -19,4 +19,7 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 	
     // 특정 이벤트 신청 목록
     List<Application> findByEventId(Long eventId);
+    
+    // 이벤트별 APPROVED 조회
+    List<Application> findByEventAndStatus(Event event, ApplicationStatus status);
 }

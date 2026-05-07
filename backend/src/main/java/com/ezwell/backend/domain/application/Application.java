@@ -48,10 +48,10 @@ public class Application {
 	
 	// 이벤트 신청
 	@Builder
-	public Application(User user, Event event) {
+	public Application(User user, Event event, ApplicationStatus status) {
 		this.user = user;
 		this.event = event;
-		this.status = ApplicationStatus.PENDING;
+		this.status = (status != null) ? status: ApplicationStatus.APPROVED;
 		this.appliedAt = LocalDateTime.now();
 	}
 	
@@ -69,5 +69,12 @@ public class Application {
 	// 상태 변경 (관리자용)
 	public void updateStatus(ApplicationStatus status) {
 	    this.status = status;
+	}
+	
+	// 이벤트 종료 후 완료 처리
+	public void complete() {
+		if(this.status == ApplicationStatus.APPROVED) {
+			this.status = ApplicationStatus.COMPLETED;
+		}
 	}
 }
