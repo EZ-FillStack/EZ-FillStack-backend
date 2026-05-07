@@ -1,7 +1,8 @@
 package com.ezwell.backend.domain.application;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,12 +44,14 @@ public class ApplicationService {
     public void applyEvent(Long eventId) {
         User user = getCurrentUser();
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException());
-		
-		// 중복 신청 체크
-		if(applicationRepository.existsByUserAndEvent(user, event)) { 
-			throw new ApplicationEventException("이미 신청한 행사입니다.");
-		}
-		
+        
+        event.validateApplicable(LocalDateTime.now());
+
+        // 중복 신청 체크
+        if (applicationRepository.existsByUserAndEvent(user, event)) {
+            throw new ApplicationEventException("이미 신청한 행사입니다.");
+        }
+        	
 		// 인원 제한
 		if(event.getCurrentParticipants() >= event.getCapacity()) {
 			throw new CapacityExceededException();
@@ -65,14 +68,23 @@ public class ApplicationService {
 	}
 	
 	// 이벤트 취소
-	@Transactional
-	public void cancelApplication(Long eventId) {
-		
-		Application application = applicationRepository.findById(eventId)
+    @Transactional
+	public void cancelApplication(Long applicationId) {
+        User user = getCurrentUser();
+		Application application = applicationRepository.findById(applicationId)
 				.orElseThrow(()-> new ApplicationEventException("신청 내역을 찾을 수 없습니다."));
 		
+		// 본인 확인
+	    if (!application.getUser().getId().equals(user.getId())) {
+	        throw new ApplicationEventException("본인의 신청만 취소할 수 있습니다.");
+	    }
+		
+		boolean wasApproved = application.getStatus() == ApplicationStatus.APPROVED;
 		application.cancel();
-		application.getEvent().decreaseParticipants();
+		
+		if(wasApproved) {
+			application.getEvent().decreaseParticipants();
+		}
 	}
 	
 	// 신청 이벤트 목록
@@ -81,17 +93,21 @@ public class ApplicationService {
         User user = getCurrentUser();
         Long userId = user.getId();
         
-        List<Application> applications = applicationRepository.findAllByUserOrderByAppliedAtDesc(user);
+        List<Application> applications = applicationRepository.findAllByUserAndStatusNotOrderByAppliedAtDesc(user, ApplicationStatus.CANCELED);
  
+        List<Long> eventIds = applications.stream()
+        		.map(a->a.getEvent().getId())
+        		.toList();
+
+        Set<Long> reviewedEventIds = eventIds.isEmpty()
+            ? Set.of()
+            : reviewRepository.findEventIdsByUserIdAndEventIdIn(userId, eventIds);
+        
         return applications.stream()
-                .map(application -> {
-                    boolean hasReview = reviewRepository.existsByUserIdAndEvent_Id(
-                            userId,
-                            application.getEvent().getId()
-                    );
-                    return MyApplicationResponse.of(application, hasReview);
-                })
-                .collect(Collectors.toList());
+        		.map(a -> MyApplicationResponse.of(
+        				a, reviewedEventIds.contains(a.getEvent().getId())
+        				))
+        		.toList();
     }
     
 }
