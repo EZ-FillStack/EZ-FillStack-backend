@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.ezwell.backend.domain.event.Event;
+import com.ezwell.backend.domain.event.dto.EventResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,12 +23,12 @@ public class SearchController {
 	private final SearchService searchService;
 	
 	@GetMapping
-    public ResponseEntity<Page<Event>> searchEvents(
+    public ResponseEntity<Page<EventResponse>> searchEvents(
             @ModelAttribute @Validated SearchRequest request,
             @PageableDefault(size=10) Pageable pageable) {
 		
 		// 검증 완료 된 keyword 사용
-		Page<Event> result  = searchService.searchPost(request.getKeyword(), pageable);
+		Page<EventResponse> result  = searchService.searchPost(request.getKeyword(), pageable);
 		
 		// 보안 로깅
         log.info("[Search] 검색어: {}, 결과 수: {} ",

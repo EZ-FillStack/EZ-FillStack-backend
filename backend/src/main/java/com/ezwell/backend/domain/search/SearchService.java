@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.util.HtmlUtils;
 
-import com.ezwell.backend.domain.event.Event;
+import com.ezwell.backend.domain.event.dto.EventResponse;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,7 +32,7 @@ public class SearchService {
 			unless= "#result.totalElements == 0")
 	
 	@Transactional(readOnly = true)
-	public Page<Event> searchPost(String keyword,Pageable pageable){
+	public Page<EventResponse> searchPost(String keyword,Pageable pageable){
 		
 		// XSS 보안
 		String sanitized = sanitize(keyword);
@@ -47,9 +47,10 @@ public class SearchService {
 	    
 	    // 키워드 분기 처리
         if (sanitized == null || sanitized.isBlank()) {
-            return searchRepository.findAll(pageRequest); 
+            return searchRepository.findAll(pageRequest).map(EventResponse::from); 
         }
-        return searchRepository.findByTitleContainingOrDescriptionContaining(sanitized, pageRequest);
+        return searchRepository.findByTitleContainingOrDescriptionContaining(sanitized, pageRequest)
+				.map(EventResponse::from);
     }
 	
     /**
