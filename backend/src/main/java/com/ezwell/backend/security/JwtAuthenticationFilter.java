@@ -18,19 +18,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenProvider jwtTokenProvider;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
-
-        // 1. 토큰 추출
-        String token = jwtTokenProvider.resolveToken(request);
-
-        // 2. 유효성 검사 및 인증 처리
-        if (StringUtils.hasText(token) && jwtTokenProvider.isValid(token)) {
-            var auth = jwtTokenProvider.getAuthentication(token);
-            SecurityContextHolder.getContext().setAuthentication(auth);
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        try {
+            String token = jwtTokenProvider.resolveToken(request);
+            if (StringUtils.hasText(token) && jwtTokenProvider.isValid(token)) {
+                var auth = jwtTokenProvider.getAuthentication(token);
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                System.out.println("인증 성공: " + auth.getName());
+            }
+        } catch (Exception e) {
+            System.err.println("필터 검증 중 에러 발생: " + e.getMessage());
+            e.printStackTrace();
         }
-
         filterChain.doFilter(request, response);
     }
 }

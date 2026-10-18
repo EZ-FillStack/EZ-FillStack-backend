@@ -1,4 +1,4 @@
-package com.ezwell.backend.domain.application.dto;
+package com.ezwell.backend.domain.admin.dto;
 
 import com.ezwell.backend.domain.application.ApplicationStatus;
 

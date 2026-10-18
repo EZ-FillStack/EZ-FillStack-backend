@@ -7,19 +7,25 @@ import org.springframework.data.repository.query.Param;
 
 import jakarta.persistence.LockModeType;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
 
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-    // 기본 조회
-    Optional<Event> findById(Long id);
-
-    // 최신 이벤트 조회 (선택 기능)
-    List<Event> findAllByOrderByCreatedAtDesc();
-
-    // 동시성 제어 (핵심)
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @Query("select e from Event e where e.id = :id")
+    @Query("select e from Event e where e.id = :id and e.deletedAt is null")
     Optional<Event> findByIdWithLock(@Param("id") Long id);
+
+    // 예정된 이벤트 조회
+    List<Event> findByEventStartDateTimeAfter(LocalDateTime now);
+
+    // 카테고리별 이벤트 조회
+    List<Event> findByCategoryId(Long categoryId);
+
+    // 인기순 이벤트 조회
+    List<Event> findAllByOrderByBookmarkCountDesc();
+
+    // 종료된 이벤트 조회
+    List<Event> findByEventEndDateTimeBefore(LocalDateTime now);
 }

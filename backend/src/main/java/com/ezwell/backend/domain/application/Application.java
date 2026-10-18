@@ -2,6 +2,7 @@ package com.ezwell.backend.domain.application;
 
 import java.time.LocalDateTime;
 
+import com.ezwell.backend.domain.application.exception.ApplicationEventException;
 import com.ezwell.backend.domain.event.Event;
 import com.ezwell.backend.domain.user.User;
 
@@ -47,21 +48,33 @@ public class Application {
 	
 	// 이벤트 신청
 	@Builder
-	public Application(User user, Event event) {
+	public Application(User user, Event event, ApplicationStatus status) {
 		this.user = user;
 		this.event = event;
-		this.status = ApplicationStatus.PENDING;
+		this.status = (status != null) ? status: ApplicationStatus.APPROVED;
 		this.appliedAt = LocalDateTime.now();
 	}
 	
 	// 신청 취소
 	public void cancel() {
-		this.status = ApplicationStatus.CANCELED;
+		if (this.status == ApplicationStatus.CANCELED) {
+			throw new ApplicationEventException("이미 취소된 신청입니다.");
+		}
+	    if (this.status == ApplicationStatus.REJECTED) {
+	        throw new ApplicationEventException("거절된 신청은 취소할 수 없습니다.");
+	    }
+	    this.status = ApplicationStatus.CANCELED;
 	}
 	
-    // 관리자 상태 변경 (APPROVED & REJECTED)
-    public void updateStatus(ApplicationStatus status) {
-        this.status = status;
-    }
-    
+	// 상태 변경 (관리자용)
+	public void updateStatus(ApplicationStatus status) {
+	    this.status = status;
+	}
+	
+	// 이벤트 종료 후 완료 처리
+	public void complete() {
+		if(this.status == ApplicationStatus.APPROVED) {
+			this.status = ApplicationStatus.COMPLETED;
+		}
+	}
 }

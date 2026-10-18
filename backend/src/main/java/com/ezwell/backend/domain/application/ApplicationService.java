@@ -1,21 +1,20 @@
 package com.ezwell.backend.domain.application;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.ezwell.backend.domain.application.dto.AdminApplicationResponse;
-import com.ezwell.backend.domain.application.dto.ApplicationStatusRequest;
 import com.ezwell.backend.domain.application.dto.MyApplicationResponse;
 import com.ezwell.backend.domain.application.exception.ApplicationEventException;
 import com.ezwell.backend.domain.event.Event;
 import com.ezwell.backend.domain.event.EventRepository;
-import com.ezwell.backend.domain.event.exception.CapacityExceededException;
 import com.ezwell.backend.domain.event.exception.EventNotFoundException;
+import com.ezwell.backend.domain.review.ReviewRepository;
 import com.ezwell.backend.domain.user.User;
 import com.ezwell.backend.domain.user.UserRepository;
 import com.ezwell.backend.security.CustomUserDetails;
@@ -29,6 +28,8 @@ public class ApplicationService {
 	private final ApplicationRepository applicationRepository;
 	private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final ReviewRepository reviewRepository;
+    Application application;
 
     // JWT 기반 유저 추출
     private User getCurrentUser() {
@@ -43,15 +44,23 @@ public class ApplicationService {
     public void applyEvent(Long eventId) {
         User user = getCurrentUser();
         Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException());
-		
-		// 중복 신청 체크
-		if(applicationRepository.existsByUserAndEvent(user, event)) { 
-			throw new ApplicationEventException("이미 신청한 행사입니다.");
-		}
-		
+        
+        event.validateApplicable(LocalDateTime.now());
+
+        // 중복 신청 체크
+        if (applicationRepository.existsByUserAndEvent(user, event)) {
+            throw new ApplicationEventException("이미 신청한 행사입니다.");
+        }
+        	
 		// 인원 제한
 		if(event.getCurrentParticipants() >= event.getCapacity()) {
-			throw new CapacityExceededException();
+			application = Application.builder()
+					.user(user)
+					.event(event)
+					.status(ApplicationStatus.REJECTED)
+					.build();
+			applicationRepository.save(application);
+			return;
 		}
 		
 		// 신청 저장
@@ -65,74 +74,46 @@ public class ApplicationService {
 	}
 	
 	// 이벤트 취소
-	@Transactional
-	public void cancelApplication(Long eventId) {
-		
-		Application application = applicationRepository.findById(eventId)
+    @Transactional
+	public void cancelApplication(Long applicationId) {
+        User user = getCurrentUser();
+		Application application = applicationRepository.findById(applicationId)
 				.orElseThrow(()-> new ApplicationEventException("신청 내역을 찾을 수 없습니다."));
 		
+		// 본인 확인
+	    if (!application.getUser().getId().equals(user.getId())) {
+	        throw new ApplicationEventException("본인의 신청만 취소할 수 있습니다.");
+	    }
+		
+		boolean wasApproved = application.getStatus() == ApplicationStatus.APPROVED;
 		application.cancel();
-		application.getEvent().decreaseParticipants();
+		
+		if(wasApproved) {
+			application.getEvent().decreaseParticipants();
+		}
 	}
 	
 	// 신청 이벤트 목록
     @Transactional(readOnly = true)
 	public List<MyApplicationResponse> getMyApplications(){
         User user = getCurrentUser();
-		return applicationRepository.findAllByUserOrderByAppliedAtDesc(user)
-				.stream()
-				.map(MyApplicationResponse::from)
-				.collect(Collectors.toList());
-	}
-    
-    
-    /// 관리자
+        Long userId = user.getId();
+        
+        List<Application> applications = applicationRepository.findAllByUserAndStatusNotOrderByAppliedAtDesc(user, ApplicationStatus.CANCELED);
+ 
+        List<Long> eventIds = applications.stream()
+        		.map(a->a.getEvent().getId())
+        		.toList();
 
-    // 전체 신청 목록 조회
-    @Transactional(readOnly = true)
-    public List<AdminApplicationResponse> getAllApplications(){
-    	return applicationRepository.findAllByOrderByAppliedAtDesc()
-    			.stream()
-    			.map(AdminApplicationResponse::from)
-    			.collect(Collectors.toList());
-    }
-    
-    // 특정 신청 목록 조회 findAllByEventOrderByAppliedAtDesc
-    @Transactional(readOnly = true)
-    public List<AdminApplicationResponse> getApplicationsByEvent(Long eventId){
-    	Event event = eventRepository.findById(eventId).orElseThrow(() -> new EventNotFoundException());
-    	return applicationRepository.findAllByEventOrderByAppliedAtDesc(event)
-    			.stream()
-    			.map(AdminApplicationResponse::from)
-    			.collect(Collectors.toList());
-    }
-    
-    // 신청 상태 변경
-    @Transactional
-    public void updateApplicationStatus(Long applicationId, ApplicationStatusRequest request) {
-    	Application application = applicationRepository.findById(applicationId)
-    			.orElseThrow(EventNotFoundException::new);
-    	
-    	// 상태변경 시 신청자 수 조정
-    	if(application.getStatus() == ApplicationStatus.APPROVED && request.getStatus() == ApplicationStatus.REJECTED) {
-    		application.getEvent().decreaseParticipants();
-    	}else if(application.getStatus() == ApplicationStatus.REJECTED && request.getStatus() == ApplicationStatus.APPROVED) {
-    		application.getEvent().increaseParticipants();
-    	}
-    	application.updateStatus(request.getStatus());
-    }
-    
-    // 신청 강제 취소
-    @Transactional
-    public void deleteApplication(Long applicationId) {
-    	Application application = applicationRepository.findById(applicationId)
-    			.orElseThrow(() -> new ApplicationEventException("신청 내역을 찾을 수 없습니다."));
-    	
-    	// 승인된 신청 삭제 시 신청자 수 감수
-    	if(application.getStatus() == ApplicationStatus.APPROVED) {
-    		application.getEvent().decreaseParticipants();
-    	}
-    	applicationRepository.delete(application);
+        Set<Long> reviewedEventIds = eventIds.isEmpty()
+            ? Set.of()
+            : reviewRepository.findEventIdsByUserIdAndEventIdIn(userId, eventIds);
+        
+        return applications.stream()
+        		.map(a -> MyApplicationResponse.of(
+        				a, reviewedEventIds.contains(a.getEvent().getId())
+        				))
+        		.toList();
     }
     
 }

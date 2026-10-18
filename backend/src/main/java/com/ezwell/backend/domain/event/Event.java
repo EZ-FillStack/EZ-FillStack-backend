@@ -4,6 +4,7 @@ import com.ezwell.backend.domain.category.Category;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.SQLRestriction;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Getter
 @NoArgsConstructor
 @Table(name = "events")
+@SQLRestriction("deleted_at IS NULL")
 public class Event {
 
     @Id
@@ -180,5 +182,23 @@ public class Event {
             return;
         }
         this.bookmarkCount--;
+    }
+
+    // =========================
+    // 이벤트 신청 상태 관리
+    // =========================
+    public void validateApplicable(LocalDateTime now) {
+    	if(this.deletedAt != null) {
+    		throw new IllegalStateException("삭제된 이벤트입니다.");
+    	}
+    	if(this.status != EventStatus.OPEN) {
+    		throw new IllegalStateException("신청 가능한 상태가 아닙니다.");
+    	}
+    	if(this.applyStartDateTime != null && now.isBefore(this.applyStartDateTime)) {
+    		throw new IllegalStateException("신청 기간이 시작되지 않았습니다.");
+    	}
+    	if(this.applyEndDateTime != null && now.isAfter(this.applyEndDateTime)) {
+    		throw new IllegalStateException("신청 기간이 종료되었습니다.");
+    	}
     }
 }

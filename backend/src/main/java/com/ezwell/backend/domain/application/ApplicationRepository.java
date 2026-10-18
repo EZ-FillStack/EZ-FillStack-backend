@@ -15,16 +15,11 @@ public interface ApplicationRepository extends JpaRepository<Application, Long> 
 	
 	// 신청 목록 조회
 	@EntityGraph(attributePaths = {"event"})
-	List<Application> findAllByUserOrderByAppliedAtDesc(User user);
+	List<Application> findAllByUserAndStatusNotOrderByAppliedAtDesc(User user, ApplicationStatus status);
 	
-	/// 관리자
-	
-	// 전체 신청 목록 (user & event)
-	@EntityGraph(attributePaths = {"user","event"})
-	List<Application> findAllByOrderByAppliedAtDesc();
-	
-	// 특정 신청 목록
-	@EntityGraph(attributePaths = {"user","event"})
-	List<Application> findAllByEventOrderByAppliedAtDesc(Event event);
-	
+    // 특정 이벤트 신청 목록
+    List<Application> findByEventId(Long eventId);
+    
+    // 이벤트별 APPROVED 조회
+    List<Application> findByEventAndStatus(Event event, ApplicationStatus status);
 }

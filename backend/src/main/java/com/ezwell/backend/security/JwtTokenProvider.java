@@ -36,12 +36,13 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    // 핵심: DB 조회 없이 인증 객체 생성
     public Authentication getAuthentication(String token) {
-
         Claims claims = parse(token).getBody();
 
-        Long userId = claims.get("userId", Integer.class).longValue();
+        // 숫자를 Object로 받아서 Number 타입으로 변환 후 longValue() 호출
+        Object userIdObj = claims.get("userId");
+        Long userId = (userIdObj instanceof Number) ? ((Number) userIdObj).longValue() : Long.parseLong(userIdObj.toString());
+
         String email = claims.getSubject();
         String role = claims.get("role", String.class);
 
@@ -80,5 +81,15 @@ public class JwtTokenProvider {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    public String createToken(Authentication authentication) {
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
+        return createAccessToken(
+                userDetails.getUserId(),
+                userDetails.getEmail(),
+                userDetails.getRole()
+        );
     }
 }

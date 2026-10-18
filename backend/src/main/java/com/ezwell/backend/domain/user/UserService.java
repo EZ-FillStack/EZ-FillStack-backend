@@ -111,4 +111,10 @@ public class UserService {
         }
         return url.substring(url.lastIndexOf("/") + 1);
     }
+
+    public void withdraw(Long userId) {
+        User user = userRepository.findById(userId)
+          .orElseThrow(() -> new IllegalArgumentException("USER_NOT_FOUND"));
+        user.softDelete(); // 상태를 DELETED로 변경
+    }
 }
